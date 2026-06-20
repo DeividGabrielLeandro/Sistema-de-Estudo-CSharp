@@ -1,0 +1,24 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "sqlproj: Build Projeto_De_Estudo",
+			"type": "process",
+			"command": "dotnet",
+			"args": [
+				"build",
+				"c:/Users/miche/OneDrive/Desktop/pastaProjetos/Projeto - Sistema de estudos em C#/Projeto_De_Estudo/Projeto_De_Estudo.sqlproj",
+				"/p:NetCoreBuild=true",
+				"/p:NETCoreTargetsPath=c:/Users/miche/.vscode/extensions/ms-mssql.sql-database-projects-vscode-1.6.1/BuildDirectory",
+				"/p:SystemDacpacsLocation=c:/Users/miche/.vscode/extensions/ms-mssql.sql-database-projects-vscode-1.6.1/BuildDirectory"
+			],
+			"problemMatcher": "$sqlproj-problem-matcher",
+			"isBackground": true,
+			"group": {
+				"kind": "build",
+				"isDefault": false
+			},
+			"detail": "Compila o Projeto_De_Estudo projeto SQL"
+		}
+	]
+}
