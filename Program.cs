@@ -1,8 +1,12 @@
 ﻿using Init_db;
 using Microsoft.Data.SqlClient;
 
-Cliente cliente = new Cliente();
+Estudo.IniciarEstudo(2);
+// Estudo.MostrarMetas();
 
-int id = cliente.CadastrarCliente();
 
-Estudo.CadastrarMeta(id);
+// Cliente cliente = new Cliente();
+
+// int id = cliente.CadastrarCliente();
+
+// Estudo.CadastrarMeta(id);

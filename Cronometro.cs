@@ -1,0 +1,66 @@
+namespace Init_db;
+
+using Microsoft.Data.SqlClient;
+
+using System;
+using System.Diagnostics;
+using System.Threading;
+
+public class Cronometro
+{
+    public static double ContarTempo(int id_estudo)
+    {
+
+        Console.WriteLine("Pressione qualquer tecla para parar o contador...");
+
+        Stopwatch cronometro = new Stopwatch();
+        cronometro.Start();
+
+        while (Console.KeyAvailable)
+        {
+            Console.ReadKey(true);
+        }
+
+        while (!Console.KeyAvailable)
+        {
+
+            string tempoDecorrido = cronometro.Elapsed.ToString(@"hh\:mm\:ss");
+            Console.Write($"\rTempo: {tempoDecorrido}");
+
+
+            Thread.Sleep(1000);
+        }
+        Console.ReadKey(true);
+        cronometro.Stop();
+
+        while (Console.KeyAvailable)
+        {
+            Console.ReadKey(true);
+        }
+
+        double minutos = cronometro.Elapsed.TotalMinutes;
+        System.Console.WriteLine(minutos);
+
+        Console.WriteLine(";\nContador parado.");
+        return minutos;
+    }
+
+    public static void SalvarTempo(int id_estudo, double minutos)
+    {
+        using (SqlConnection conn = new SqlConnection(Banco.Conexao))
+        {
+            conn.Open();
+            string sql = "UPDATE Estudo SET minutos_estudados = minutos_estudados + @minutos WHERE id = @id";
+            using (SqlCommand cmd = new SqlCommand(sql, conn))
+            {
+
+                cmd.Parameters.AddWithValue("@minutos", minutos);
+                cmd.Parameters.AddWithValue("@id", id_estudo);
+                cmd.ExecuteNonQuery();
+
+            }
+            System.Console.WriteLine("Tempo salvo");
+
+        }
+    }
+}
