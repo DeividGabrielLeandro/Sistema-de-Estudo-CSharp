@@ -8,15 +8,21 @@ using Microsoft.Data.SqlClient;
 
 public class Estudo
 {
-    public static void CadastrarMeta(int id_gerado)
+    public int CadastrarMeta(int id_gerado)
     {
-        Estudo estudo = new Estudo();
         using (SqlConnection conn = new SqlConnection(Banco.Conexao))
         {
             conn.Open();
             string sql = "INSERT INTO Estudo(titulo,descricao,meta_minutos,id_cliente) " + "VALUES (@titulo,@descricao,@meta_minutos,@id_cliente)";
             using (SqlCommand cmd = new SqlCommand(sql, conn))
             {
+                Console.Clear();
+                System.Console.WriteLine("===================================================================");
+                Console.ForegroundColor = ConsoleColor.Green;
+                System.Console.WriteLine("            === ATHENA - Crie seu plano de estudo ===        ");
+                Console.ResetColor();
+                System.Console.WriteLine("===================================================================\n");
+
                 System.Console.WriteLine("Informe o título que você vai dar para a tarefa: ");
                 string titulo = Console.ReadLine()!;
 
@@ -33,48 +39,97 @@ public class Estudo
 
                 cmd.ExecuteNonQuery();
 
-
             }
+            System.Console.WriteLine("Meta definida!!");
+            System.Console.WriteLine("Aperte qualquer tecla para sair");
+            Console.ReadKey();
+
+            return -1;
         }
 
     }
-    public static void MostrarMetas()
+    public static void MostrarMetas(int id)
     {
         using (SqlConnection conn = new SqlConnection(Banco.Conexao))
         {
             conn.Open();
-            string sql = "SELECT * FROM Estudo ";
+            string sql = "SELECT * FROM Estudo WHERE id_cliente = @id";
             using (SqlCommand cmd = new SqlCommand(sql, conn))
-            using (var Reader = cmd.ExecuteReader())
             {
-                Console.Clear();
-                System.Console.WriteLine("=========================================================");
-                System.Console.WriteLine("                  SEUS PLANOS DE ESTUDO");
-                System.Console.WriteLine("=========================================================\n");
-                while (Reader.Read())
+                cmd.Parameters.AddWithValue("@id", id);
+                using (var Reader = cmd.ExecuteReader())
+
                 {
-                    bool concluido = Convert.ToBoolean(Reader["concluido"]);
 
-                    System.Console.WriteLine($"Id: {Reader["id"]}");
-                    System.Console.WriteLine($"Titulo: {Reader["titulo"]}");
-                    System.Console.WriteLine($"Descrição: {Reader["descricao"]}");
-                    System.Console.WriteLine($"Meta em minútos: {Reader["meta_minutos"]} min");
-                    System.Console.WriteLine($"Minutos estudados: {Reader["minutos_estudados"]}");
-                    System.Console.WriteLine($"Criado em: {Reader["data_criacao"]}");
-
-                    if (!concluido)
+                    Console.Clear();
+                    System.Console.WriteLine("===================================================================");
+                    Console.ForegroundColor = ConsoleColor.Green;
+                    System.Console.WriteLine("            === ATHENA - Seus planos de estudo===        ");
+                    Console.ResetColor();
+                    System.Console.WriteLine("===================================================================\n");
+                    while (Reader.Read())
                     {
-                        System.Console.WriteLine("Tarefa ainda não concluída\n");
+                        bool concluido = Convert.ToBoolean(Reader["concluido"]);
+
+                        System.Console.WriteLine($"Id: {Reader["id"]}");
+                        System.Console.WriteLine($"Titulo: {Reader["titulo"]}");
+                        System.Console.WriteLine($"Descrição: {Reader["descricao"]}");
+                        System.Console.WriteLine($"Meta em minútos: {Reader["meta_minutos"]} min");
+                        System.Console.WriteLine($"Minutos estudados: {Reader["minutos_estudados"]}");
+                        System.Console.WriteLine($"Criado em: {Reader["data_criacao"]}");
+
+                        if (!concluido)
+                        {
+                            System.Console.WriteLine("Tarefa ainda não concluída\n");
+                        }
+                        else
+                        {
+                            System.Console.WriteLine("Tarefa concluída\n");
+                        }
+
+                        System.Console.WriteLine("===================================================================\n");
+                    }
+                    System.Console.WriteLine("Iniciar algum plano de estudo? (s/n)");
+                    string resposta = Console.ReadLine()!;
+                    if (resposta == "s")
+                    {
+                        Estudo estudo = new Estudo();
+                        estudo.EscolherEstudo();
                     }
                     else
                     {
-                        System.Console.WriteLine("Tarefa concluída\n");
+                        System.Console.WriteLine("Aperte qualquer tecla para sair! ");
+                        Console.ReadKey();
+
                     }
 
-                    System.Console.WriteLine("------------------------------------------------\n");
                 }
-
             }
+        }
+    }
+    public int EscolherEstudo()
+    {
+
+        using (SqlConnection conn = new SqlConnection(Banco.Conexao))
+        {
+            conn.Open();
+            System.Console.WriteLine("\n==================================");
+            Console.ForegroundColor = ConsoleColor.Green;
+            System.Console.WriteLine("=== Escolha plano de estudo ===");
+            Console.ResetColor();
+            System.Console.WriteLine("==================================\n");
+
+            Console.WriteLine("Digite o id do plano de estudo escolhido: ");
+            int id = int.Parse(Console.ReadLine()!);
+
+            string sql = "SELECT * FROM Estudo WHERE id = @id";
+
+            using (SqlCommand cmd = new SqlCommand(sql, conn))
+            {
+                cmd.Parameters.AddWithValue("@id", id);
+                Estudo.IniciarEstudo(id);
+            }
+            return -1;
         }
     }
 
@@ -90,20 +145,24 @@ public class Estudo
                 using (var Reader = cmd.ExecuteReader())
                 {
                     Console.Clear();
-                    System.Console.WriteLine("=========================================================");
-                    System.Console.WriteLine("                  SEU PLANO DE ESTUDO");
-                    System.Console.WriteLine("=========================================================\n");
+                    System.Console.WriteLine("\n===================================================================");
+                    Console.ForegroundColor = ConsoleColor.Green;
+                    System.Console.WriteLine("            === ATHENA - Seu plano de estudo ===        ");
+                    Console.ResetColor();
+                    System.Console.WriteLine("\n===================================================================\n");
 
                     if (Reader.Read())
                     {
 
                         System.Console.WriteLine($"Titulo: {Reader["titulo"]}");
-                        System.Console.WriteLine("------------------------------------------------\n");
+                        System.Console.WriteLine("==================================\n");
                         System.Console.WriteLine($"Descrição: {Reader["descricao"]}");
                         System.Console.WriteLine($"Sua meta: {Reader["meta_minutos"]} min\n");
-                        System.Console.WriteLine("------------------------------------------------\n");
-                        System.Console.WriteLine($"{Reader["minutos_estudados"]} minutos estudado(s)\n");
-                        System.Console.WriteLine("Opções:");
+                        System.Console.WriteLine("==================================\n");
+                        System.Console.WriteLine($"{Reader["minutos_estudados"]} minuto(s) estudado(s)\n");
+                        System.Console.WriteLine("==================================");
+                        System.Console.WriteLine("             OPÇÔES               ");
+                        System.Console.WriteLine("==================================\n"); 
                         System.Console.WriteLine("[1] - Começar a contar o tempo");
                         System.Console.WriteLine("[2] - Sair");
                         System.Console.WriteLine("Digite a opção escolhida: ");

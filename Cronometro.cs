@@ -11,6 +11,18 @@ public class Cronometro
     public static double ContarTempo(int id_estudo)
     {
 
+       Console.Clear();
+        System.Console.WriteLine("\n===================================================================");
+        Console.ForegroundColor = ConsoleColor.Green;
+        System.Console.WriteLine("                  === CRONOMETRO DE ESTUDO ===        ");
+        Console.ResetColor();
+        System.Console.WriteLine("===================================================================\n");
+
+        System.Console.WriteLine(" \"A educação é a arma mais poderosa que você pode usar para mudar o mundo.\" - Nelson Mandela\n");
+
+        System.Console.WriteLine("\n===================================================================\n");
+
+
         Console.WriteLine("Pressione qualquer tecla para parar o contador...");
 
         Stopwatch cronometro = new Stopwatch();
@@ -23,9 +35,11 @@ public class Cronometro
 
         while (!Console.KeyAvailable)
         {
+            Console.ForegroundColor = ConsoleColor.Green;
 
             string tempoDecorrido = cronometro.Elapsed.ToString(@"hh\:mm\:ss");
-            Console.Write($"\rTempo: {tempoDecorrido}");
+            Console.Write($"\rTempo:        {tempoDecorrido}");
+            Console.ResetColor();
 
 
             Thread.Sleep(1000);
