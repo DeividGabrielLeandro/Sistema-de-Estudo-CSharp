@@ -140,22 +140,27 @@ public class Cliente
             }
         }
     }
-    public int ObterTempoTotalEstudado(int id)
+    public static double MostrarTempoTotalEstudo(int idCliente)
     {
         using (SqlConnection conn = new SqlConnection(Banco.Conexao))
         {
             conn.Open();
 
-            string sql = @"
-            SELECT ISNULL(SUM(minutos_estudados), 0)
-            FROM Estudo
-            WHERE id = @id";
+            string sql = @"SELECT TotalMinutosEstudados
+                       FROM Cliente
+                       WHERE id = @id ";
 
             using (SqlCommand cmd = new SqlCommand(sql, conn))
             {
-                cmd.Parameters.AddWithValue("@id", id);
+                cmd.Parameters.AddWithValue("@id", idCliente);
+                object resultado = cmd.ExecuteScalar();
 
-                return (int)cmd.ExecuteScalar();
+                if (resultado != null && resultado != DBNull.Value)
+                {
+                    return Convert.ToDouble(resultado);
+                }
+
+                return Convert.ToDouble(resultado);
             }
         }
     }

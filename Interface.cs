@@ -77,16 +77,15 @@ public class Interface
     {
         Cliente cliente = new Cliente();
         Estudo estudo = new Estudo();
+        double TempoEstudo = Cliente.MostrarTempoTotalEstudo(id);
         bool entradaValida = false;
         bool Sair = false;
         int opcao = 0;
         string Nome = cliente.ObterNomeCliente(id);
-        int TempoEstudado = cliente.ObterTempoTotalEstudado(id);
-        System.Console.WriteLine($"{Nome}");
 
         while (!Sair)
         {
-            
+
             Console.Clear();
             System.Console.WriteLine("===================================================================");
             Console.ForegroundColor = ConsoleColor.Green;
@@ -97,7 +96,7 @@ public class Interface
             System.Console.WriteLine($"\nBem-vindo(a) {Nome}!!");
 
             System.Console.WriteLine("==================================");
-            System.Console.WriteLine($"Seus minutos estudados: {TempoEstudado}");
+            System.Console.WriteLine($"Seus minutos estudados: {TempoEstudo}");
             System.Console.WriteLine("==================================");
 
             System.Console.WriteLine("\"O homem não é nada além daquilo que a educação faz dele\" - Imannuel Kant \n");
@@ -111,10 +110,11 @@ public class Interface
             {
                 System.Console.WriteLine("[1] - Criar nova meta");
                 System.Console.WriteLine("[2] - Mostrar todas as metas cadastradas");
-                System.Console.WriteLine("[3] - Sair");
+                System.Console.WriteLine("[3] - Iniciar um estudo livre");
+                System.Console.WriteLine("[4] - Sair");
                 System.Console.WriteLine("Digite a opção escolhida: ");
 
-                if (int.TryParse(Console.ReadLine(), out opcao) && opcao >= 1 && opcao <= 3)
+                if (int.TryParse(Console.ReadLine(), out opcao) && opcao >= 1 && opcao <= 4)
                 {
                     entradaValida = true;
                 }
@@ -136,6 +136,10 @@ public class Interface
                     Estudo.MostrarMetas(id);
                     break;
                 case 3:
+                double minutos = Cronometro.ContarTempo();
+                Cronometro.AtualizarTempoTotalCliente(id,minutos);
+                    break;
+                case 4:
                     Sair = true;
                     break;
 

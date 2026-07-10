@@ -8,7 +8,7 @@ using System.Threading;
 
 public class Cronometro
 {
-    public static double ContarTempo(int id_estudo)
+    public static double ContarTempo()
     {
 
        Console.Clear();
@@ -70,6 +70,27 @@ public class Cronometro
 
                 cmd.Parameters.AddWithValue("@minutos", minutos);
                 cmd.Parameters.AddWithValue("@id", id_estudo);
+                cmd.ExecuteNonQuery();
+
+            }
+            System.Console.WriteLine("Tempo salvo");
+
+        }
+    }
+    public static void AtualizarTempoTotalCliente(int id_cliente, double minutos)
+    {
+        using (SqlConnection conn = new SqlConnection(Banco.Conexao))
+        {
+            conn.Open();
+            string sql =@"
+            UPDATE Cliente
+            SET TotalMinutosEstudados = TotalMinutosEstudados + @minutos
+            WHERE id = @id";
+            using (SqlCommand cmd = new SqlCommand(sql, conn))
+            {
+
+                cmd.Parameters.AddWithValue("@minutos", minutos);
+                cmd.Parameters.AddWithValue("@id", id_cliente);
                 cmd.ExecuteNonQuery();
 
             }

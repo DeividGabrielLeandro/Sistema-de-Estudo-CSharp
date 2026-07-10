@@ -94,7 +94,7 @@ public class Estudo
                     if (resposta == "s")
                     {
                         Estudo estudo = new Estudo();
-                        estudo.EscolherEstudo();
+                        estudo.EscolherEstudo(id);
                     }
                     else
                     {
@@ -107,7 +107,7 @@ public class Estudo
             }
         }
     }
-    public int EscolherEstudo()
+    public int EscolherEstudo(int id_cliente)
     {
 
         using (SqlConnection conn = new SqlConnection(Banco.Conexao))
@@ -127,14 +127,14 @@ public class Estudo
             using (SqlCommand cmd = new SqlCommand(sql, conn))
             {
                 cmd.Parameters.AddWithValue("@id", id);
-                Estudo.IniciarEstudo(id);
+                Estudo.IniciarEstudo(id_cliente,id);
             }
             return -1;
         }
     }
-
-    public static void IniciarEstudo(int id_estudo)
+    public static void IniciarEstudo(int id_cliente,int id_estudo)
     {
+        
         using (SqlConnection conn = new SqlConnection(Banco.Conexao))
         {
             conn.Open();
@@ -171,8 +171,9 @@ public class Estudo
                             switch (opcao)
                             {
                                 case 1:
-                                    double minutos = Cronometro.ContarTempo(id_estudo);
+                                    double minutos = Cronometro.ContarTempo();
                                     Cronometro.SalvarTempo(id_estudo, minutos);
+                                    Cronometro.AtualizarTempoTotalCliente(id_cliente,minutos);
                                     break;
                                 case 2:
                                     break;
@@ -195,4 +196,5 @@ public class Estudo
             }
         }
     }
+  
 }

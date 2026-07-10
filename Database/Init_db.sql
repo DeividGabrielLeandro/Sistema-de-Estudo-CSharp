@@ -1,3 +1,5 @@
 
 
-SELECT * FROM Estudo
+
+
+SELECT * FROM Cliente
