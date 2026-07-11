@@ -1,3 +1,5 @@
+using System.Reflection.Metadata.Ecma335;
+
 namespace Init_db;
 
 using System;
@@ -127,20 +129,21 @@ public class Estudo
             using (SqlCommand cmd = new SqlCommand(sql, conn))
             {
                 cmd.Parameters.AddWithValue("@id", id);
-                Estudo.IniciarEstudo(id_cliente,id);
+                Estudo.IniciarEstudo(id_cliente, id);
             }
             return -1;
         }
     }
-    public static void IniciarEstudo(int id_cliente,int id_estudo)
+    public static void IniciarEstudo(int id_cliente, int id_estudo)
     {
-        
+
         using (SqlConnection conn = new SqlConnection(Banco.Conexao))
         {
             conn.Open();
             string sql = "SELECT * FROM Estudo WHERE id = @id";
             using (SqlCommand cmd = new SqlCommand(sql, conn))
             {
+
                 cmd.Parameters.AddWithValue("@id", id_estudo);
                 using (var Reader = cmd.ExecuteReader())
                 {
@@ -153,6 +156,7 @@ public class Estudo
 
                     if (Reader.Read())
                     {
+                        bool concluido = Convert.ToBoolean(Reader["concluido"]);
 
                         System.Console.WriteLine($"Titulo: {Reader["titulo"]}");
                         System.Console.WriteLine("==================================\n");
@@ -160,11 +164,24 @@ public class Estudo
                         System.Console.WriteLine($"Sua meta: {Reader["meta_minutos"]} min\n");
                         System.Console.WriteLine("==================================\n");
                         System.Console.WriteLine($"{Reader["minutos_estudados"]} minuto(s) estudado(s)\n");
+
+                        if (!concluido)
+                        {
+                            System.Console.WriteLine("Tarefa em andamento");
+                        }
+                        else
+                        {
+                            System.Console.WriteLine("Tarefa concluída");
+                        }
+
                         System.Console.WriteLine("==================================");
                         System.Console.WriteLine("             OPÇÔES               ");
-                        System.Console.WriteLine("==================================\n"); 
+                        System.Console.WriteLine("==================================\n");
                         System.Console.WriteLine("[1] - Começar a contar o tempo");
-                        System.Console.WriteLine("[2] - Sair");
+                        System.Console.WriteLine("[2] - atualiza titulo");
+                        System.Console.WriteLine("[3] - atualiza descricao");
+                        System.Console.WriteLine("[4] - atualiz meta");
+                        System.Console.WriteLine("[5] - marcar como finalizada");
                         System.Console.WriteLine("Digite a opção escolhida: ");
                         if (int.TryParse(Console.ReadLine(), out int opcao))
                         {
@@ -173,9 +190,22 @@ public class Estudo
                                 case 1:
                                     double minutos = Cronometro.ContarTempo();
                                     Cronometro.SalvarTempo(id_estudo, minutos);
-                                    Cronometro.AtualizarTempoTotalCliente(id_cliente,minutos);
+                                    Cronometro.AtualizarTempoTotalCliente(id_cliente, minutos);
                                     break;
                                 case 2:
+                                    Estudo.AtualizarTitulo(id_estudo);
+                                    break;
+                                case 3:
+                                    Estudo.AtualizarDescricao(id_estudo);
+                                    break;
+                                case 4:
+                                    Estudo.AtualizarMeta(id_estudo);
+                                    break;
+                                case 5:
+                                    Estudo.MarcarFinalizada(id_estudo);
+                                    break;
+                                case 6:
+                                    Estudo.ApagarMeta(id_estudo);
                                     break;
                             }
                         }
@@ -196,5 +226,187 @@ public class Estudo
             }
         }
     }
-  
+    public static int AtualizarTitulo(int id)
+    {
+        using (SqlConnection conn = new SqlConnection(Banco.Conexao))
+        {
+
+            conn.Open();
+            System.Console.WriteLine("digite o novo tutulo");
+            string titulo = Console.ReadLine()!;
+            string sql = "UPDATE Estudo SET titulo = @titulo WHERE id = @id";
+
+            using (SqlCommand cmd = new SqlCommand(sql, conn))
+            {
+
+
+
+                cmd.Parameters.AddWithValue("@id", id);
+                cmd.Parameters.AddWithValue("@titulo", titulo);
+
+                int linhasAfetadas = cmd.ExecuteNonQuery();
+
+                if (linhasAfetadas > 0)
+                {
+                    Console.WriteLine("Título atualizado com sucesso!");
+                }
+                else
+                {
+                    Console.WriteLine("Nenhum estudo encontrado com esse ID.");
+                }
+
+            }
+        }
+
+        return -1;
+    }
+
+    public static int AtualizarDescricao(int id)
+    {
+        using (SqlConnection conn = new SqlConnection(Banco.Conexao))
+        {
+
+            conn.Open();
+            System.Console.WriteLine("digite a descrucai");
+            string descricao = Console.ReadLine()!;
+            string sql = "UPDATE Estudo SET descricao = @descricao WHERE id = @id";
+
+            using (SqlCommand cmd = new SqlCommand(sql, conn))
+            {
+
+
+
+                cmd.Parameters.AddWithValue("@id", id);
+                cmd.Parameters.AddWithValue("@descricao", descricao);
+
+                int linhasAfetadas = cmd.ExecuteNonQuery();
+
+                if (linhasAfetadas > 0)
+                {
+                    Console.WriteLine("Descrição atualizado com sucesso!");
+                }
+                else
+                {
+                    Console.WriteLine("Nenhum estudo encontrado com esse ID.");
+                }
+
+            }
+        }
+
+        return -1;
+    }
+
+    public static int AtualizarMeta(int id)
+    {
+        using (SqlConnection conn = new SqlConnection(Banco.Conexao))
+        {
+
+            conn.Open();
+            System.Console.WriteLine("digite a meta em minutos");
+            int meta_minutos = int.Parse(Console.ReadLine()!);
+            string sql = "UPDATE Estudo SET meta_minutos = @meta_minutos WHERE id = @id";
+
+            using (SqlCommand cmd = new SqlCommand(sql, conn))
+            {
+
+                cmd.Parameters.AddWithValue("@id", id);
+                cmd.Parameters.AddWithValue("@meta_minutos", meta_minutos);
+
+                int linhasAfetadas = cmd.ExecuteNonQuery();
+
+                if (linhasAfetadas > 0)
+                {
+                    Console.WriteLine("Descrição atualizado com sucesso!");
+                }
+                else
+                {
+                    Console.WriteLine("Nenhum estudo encontrado com esse ID.");
+                }
+
+            }
+        }
+
+        return -1;
+    }
+    public static void MarcarFinalizada(int id)
+    {
+        using (SqlConnection conn = new SqlConnection(Banco.Conexao))
+        {
+
+            conn.Open();
+            System.Console.WriteLine("Marcar a meta como finalizada? (s/n)");
+            string concluido = Console.ReadLine()!;
+            if (concluido == "s")
+            {
+
+                string sql = "UPDATE Estudo SET concluido = 1 WHERE id = @id";
+
+                using (SqlCommand cmd = new SqlCommand(sql, conn))
+                {
+
+                    cmd.Parameters.AddWithValue("@id", id);
+
+                    int linhasAfetadas = cmd.ExecuteNonQuery();
+
+                    if (linhasAfetadas > 0)
+                    {
+                        Console.WriteLine("Meta marcada como concluída com sucesso!");
+                    }
+                    else
+                    {
+                        Console.WriteLine("Nenhum estudo encontrado com esse ID.");
+                    }
+                }
+
+            }
+            else
+            {
+                {
+                    Console.WriteLine("Operação cancelada.");
+                }
+            }
+        }
+    }
+
+    public static void ApagarMeta (int id)
+    {
+        using (SqlConnection conn = new SqlConnection(Banco.Conexao))
+        {
+
+            conn.Open();
+            System.Console.WriteLine("Apagar essa meta? (s/n)");
+            string concluido = Console.ReadLine()!;
+            if (concluido == "s")
+            {
+
+                string sql = "DELETE FROM Estudo WHERE id = @id";
+
+                using (SqlCommand cmd = new SqlCommand(sql, conn))
+                {
+
+                    cmd.Parameters.AddWithValue("@id", id);
+
+                    int linhasAfetadas = cmd.ExecuteNonQuery();
+
+                    if (linhasAfetadas > 0)
+                    {
+                        Console.WriteLine("Deletado com sucesso");
+                    }
+                    else
+                    {
+                        Console.WriteLine("Nenhum estudo encontrado com esse ID.");
+                    }
+                }
+
+            }
+            else
+            {
+                {
+                    Console.WriteLine("Operação cancelada.");
+                }
+            }
+        }
+    }
 }
+
+
