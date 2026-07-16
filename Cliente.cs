@@ -164,5 +164,74 @@ public class Cliente
             }
         }
     }
-}
 
+    public static double MostrarMetasPendentes(int idCliente)
+    {
+        using (SqlConnection conn = new SqlConnection(Banco.Conexao))
+        {
+            conn.Open();
+
+            string sql = "SELECT COUNT(*) FROM Estudo WHERE id_cliente = @id_cliente AND concluido = 0";
+
+            using (SqlCommand cmd = new SqlCommand(sql, conn))
+            {
+                cmd.Parameters.AddWithValue("@id_cliente", idCliente);
+                object resultado = cmd.ExecuteScalar();
+
+                if (resultado != null && resultado != DBNull.Value)
+                {
+                    return Convert.ToDouble(resultado);
+                }
+
+                return 0;
+            }
+        }
+    }
+
+
+        public static double MostrarMetasConcluidas(int idCliente)
+        {
+            using (SqlConnection conn = new SqlConnection(Banco.Conexao))
+            {
+                conn.Open();
+
+                string sql = "SELECT COUNT(*) FROM Estudo WHERE id_cliente = @id_cliente AND concluido = 1";
+
+                using (SqlCommand cmd = new SqlCommand(sql, conn))
+                {
+                    cmd.Parameters.AddWithValue("@id_cliente", idCliente);
+                    object resultado = cmd.ExecuteScalar();
+
+                    if (resultado != null && resultado != DBNull.Value)
+                    {
+                        return Convert.ToDouble(resultado);
+                    }
+
+                    return 0;
+                }
+            }
+        }
+        public static double MostrarTodasMetas(int idCliente)
+        {
+            using (SqlConnection conn = new SqlConnection(Banco.Conexao))
+            {
+                conn.Open();
+
+                string sql = "SELECT COUNT(*) FROM Estudo WHERE id_cliente = @id_cliente";
+
+                using (SqlCommand cmd = new SqlCommand(sql, conn))
+                {
+                    cmd.Parameters.AddWithValue("@id_cliente", idCliente);
+                    object resultado = cmd.ExecuteScalar();
+
+                    if (resultado != null && resultado != DBNull.Value)
+                    {
+                        return Convert.ToDouble(resultado);
+                    }
+
+                    return 0;
+                }
+            }
+        }
+
+}
