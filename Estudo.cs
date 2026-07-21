@@ -8,8 +8,17 @@ using System.Threading;
 
 using Microsoft.Data.SqlClient;
 
+/// <summary>
+/// Gerencia o cadastro, consulta, atualização e acompanhamento
+/// das metas de estudo do usuário.
+/// </summary>
 public class Estudo
 {
+    /// <summary>
+    /// Cadastra uma nova meta de estudo vinculada ao usuário informado.
+    /// </summary>
+    /// <param name="id_gerado">Identificador do usuário.</param>
+    /// <returns>Retorna -1 ao finalizar o processo.</returns>
     public int CadastrarMeta(int id_gerado)
     {
         using (SqlConnection conn = new SqlConnection(Banco.Conexao))
@@ -18,51 +27,65 @@ public class Estudo
             string sql = "INSERT INTO Estudo(titulo,descricao,meta_minutos,id_cliente) " + "VALUES (@titulo,@descricao,@meta_minutos,@id_cliente)";
             using (SqlCommand cmd = new SqlCommand(sql, conn))
             {
-                Console.Clear();
-                System.Console.WriteLine("===================================================================");
-                Console.ForegroundColor = ConsoleColor.Green;
-                System.Console.WriteLine("            === ATHENA - Crie seu plano de estudo ===        ");
-                Console.ResetColor();
-                System.Console.WriteLine("===================================================================\n");
+                string resposta = "";
+                do
+                {
+                    Interface.LimparTelaGeral();
+                    Interface.EscreverCentralizado("ATHENA -  Crie seu plano de estudo");
 
-                System.Console.WriteLine("Informe o título que você vai dar para a tarefa: ");
-                string titulo = Console.ReadLine()!;
+                    string titulo = Validacao.EntradaObrigatoria("Defina um título para sua meta: ", ref resposta);
+                    if (titulo == null) continue;
 
-                System.Console.WriteLine("Agora crie uma descrição: ");
-                string descricao = Console.ReadLine()!;
+                    string descricao = Validacao.EntradaObrigatoria("Defina uma descrição para sua meta: ", ref resposta);
 
-                System.Console.WriteLine("Defina uma meta em minútos para focar na tarefa: (campo não obrigatório)");
-                int? meta_minutos = int.Parse(Console.ReadLine()!);
+                    if (descricao == null) continue;
 
-                cmd.Parameters.AddWithValue("@titulo", titulo);
-                cmd.Parameters.AddWithValue("@descricao", descricao);
-                cmd.Parameters.AddWithValue("@meta_minutos", meta_minutos);
-                cmd.Parameters.AddWithValue("@id_cliente", id_gerado);
+                    System.Console.WriteLine("Defina uma meta em minútos para focar na tarefa: (campo não obrigatório)");
+                    string entrada = Console.ReadLine()!.Trim();
 
-                cmd.ExecuteNonQuery();
+                    int meta_minutos = 0;
 
+                    // Permite que o usuário deixe a meta de minutos em branco.
+                    if (!string.IsNullOrWhiteSpace(entrada))
+                    {
+                        int.TryParse(entrada, out meta_minutos);
+                    }
+
+                    cmd.Parameters.AddWithValue("@titulo", titulo);
+                    cmd.Parameters.AddWithValue("@descricao", descricao);
+                    cmd.Parameters.AddWithValue("@meta_minutos", meta_minutos);
+                    cmd.Parameters.AddWithValue("@id_cliente", id_gerado);
+
+                    cmd.ExecuteNonQuery();
+
+                } while (resposta == "s");
+                Mensagens.Sucesso_MetaCadastrada();
+                return -1;
             }
-            System.Console.WriteLine("Meta definida!!");
-            System.Console.WriteLine("Aperte qualquer tecla para sair");
-            Console.ReadKey();
 
-            return -1;
         }
-
     }
+
+
+    /// <summary>
+    /// Pesquisa metas pelo título ou descrição.
+    /// </summary>
+    /// <param name="pesquisa">Texto utilizado na pesquisa.</param>
+    /// <param name="id_cliente">Identificador do usuário.</param>
     public static void PesquisarMeta(string pesquisa, int id_cliente)
     {
         bool MetaEncontrada = false;
 
-        string sql = "SELECT * FROM Estudo WHERE titulo LIKE @TermoBusca OR descricao LIKE @TermoBusca";
+        string sql = @"SELECT * FROM Estudo WHERE id_cliente = @id_cliente AND (titulo LIKE @TermoBusca OR descricao LIKE @TermoBusca)";
         using (SqlConnection conn = new SqlConnection(Banco.Conexao))
         {
             SqlCommand cmd = new SqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("@TermoBusca", "%" + pesquisa + "%");
+            cmd.Parameters.AddWithValue("@id_cliente", id_cliente);
             conn.Open();
             using SqlDataReader Reader = cmd.ExecuteReader();
-            Console.Clear();
-            Interface.Titulo("ATHENA - Pesquise sua meta de estudo");
+            Interface.LimparTelaGeral();
+            Interface.EscreverCentralizado("ATHENA - Pesquise sua meta de estudo");
             try
             {
 
@@ -101,33 +124,29 @@ public class Estudo
                     }
                     else
                     {
-                        System.Console.WriteLine("Aperte qualquer tecla para sair! ");
-                        Console.ReadKey();
-
+                        Mensagens.Sair();
                     }
                 }
                 else if (MetaEncontrada == false)
                 {
-                Console.WriteLine("Erro: Não há livros com os dados da pesquisa");
-                Console.WriteLine();
-                System.Console.WriteLine("Precione qualquer tecla para voltar");
-                Console.ReadKey();
+                    Mensagens.Erro_SemInformacoes();
                 }
 
             }
-            catch (Exception ex)
+            catch
             {
-                Console.WriteLine("Erro: " + ex.Message + "Não há livros com os dados da pesquisa");
-                Console.WriteLine();
-                System.Console.WriteLine("Precione qualquer tecla para voltar");
-                Console.ReadKey();
-
+                Mensagens.Erro_SemInformacoes();
             }
 
 
         }
 
     }
+
+
+    /// <summary>
+    /// Exibe todas as metas cadastradas pelo usuário.
+    /// </summary>
     public static void MostrarMetas(int id)
     {
         using (SqlConnection conn = new SqlConnection(Banco.Conexao))
@@ -140,13 +159,9 @@ public class Estudo
                 using (var Reader = cmd.ExecuteReader())
 
                 {
+                    Interface.LimparTelaGeral();
+                    Interface.EscreverCentralizado("ATHENA -  Seus planos de estudo ");
 
-                    Console.Clear();
-                    System.Console.WriteLine("===================================================================");
-                    Console.ForegroundColor = ConsoleColor.Green;
-                    System.Console.WriteLine("            === ATHENA - Seus planos de estudo===        ");
-                    Console.ResetColor();
-                    System.Console.WriteLine("===================================================================\n");
                     while (Reader.Read())
                     {
                         bool concluido = Convert.ToBoolean(Reader["concluido"]);
@@ -178,15 +193,18 @@ public class Estudo
                     }
                     else
                     {
-                        System.Console.WriteLine("Aperte qualquer tecla para sair! ");
-                        Console.ReadKey();
-
+                        Mensagens.Sair();
                     }
 
                 }
             }
         }
     }
+
+
+    /// <summary>
+    /// Exibe apenas as metas pendentes.
+    /// </summary>
     public static void MostrarMetasPendentes(int id)
     {
         using (SqlConnection conn = new SqlConnection(Banco.Conexao))
@@ -199,13 +217,9 @@ public class Estudo
                 using (var Reader = cmd.ExecuteReader())
 
                 {
+                    Interface.LimparTelaGeral();
+                    Interface.EscreverCentralizado("ATHENA -  Seus planos de estudo ");
 
-                    Console.Clear();
-                    System.Console.WriteLine("===================================================================");
-                    Console.ForegroundColor = ConsoleColor.Green;
-                    System.Console.WriteLine("            === ATHENA - Seus planos de estudo===        ");
-                    Console.ResetColor();
-                    System.Console.WriteLine("===================================================================\n");
                     while (Reader.Read())
                     {
                         bool concluido = Convert.ToBoolean(Reader["concluido"]);
@@ -237,9 +251,7 @@ public class Estudo
                     }
                     else
                     {
-                        System.Console.WriteLine("Aperte qualquer tecla para sair! ");
-                        Console.ReadKey();
-
+                        Mensagens.Sair();
                     }
 
                 }
@@ -247,6 +259,10 @@ public class Estudo
         }
     }
 
+
+    /// <summary>
+    /// Exibe apenas as metas concluídas.
+    /// </summary>
     public static void MostrarMetasConcluidas(int id)
     {
         using (SqlConnection conn = new SqlConnection(Banco.Conexao))
@@ -259,13 +275,9 @@ public class Estudo
                 using (var Reader = cmd.ExecuteReader())
 
                 {
+                    Interface.LimparTelaGeral();
+                    Interface.EscreverCentralizado("ATHENA -  Seus planos de estudo ");
 
-                    Console.Clear();
-                    System.Console.WriteLine("===================================================================");
-                    Console.ForegroundColor = ConsoleColor.Green;
-                    System.Console.WriteLine("            === ATHENA - Seus planos de estudo===        ");
-                    Console.ResetColor();
-                    System.Console.WriteLine("===================================================================\n");
                     while (Reader.Read())
                     {
                         bool concluido = Convert.ToBoolean(Reader["concluido"]);
@@ -297,9 +309,7 @@ public class Estudo
                     }
                     else
                     {
-                        System.Console.WriteLine("Aperte qualquer tecla para sair! ");
-                        Console.ReadKey();
-
+                        Mensagens.Sair();
                     }
 
                 }
@@ -307,31 +317,69 @@ public class Estudo
         }
     }
 
+
+    /// <summary>
+    /// Permite ao usuário selecionar uma meta e iniciar uma sessão de estudo.
+    /// </summary>
+    /// <param name="id_cliente">Identificador do usuário.</param>
+    /// <returns>
+    /// Retorna -1 quando nenhuma meta é selecionada ou o processo é cancelado.
+    /// </returns>
     public int EscolherEstudo(int id_cliente)
     {
 
         using (SqlConnection conn = new SqlConnection(Banco.Conexao))
         {
             conn.Open();
-            System.Console.WriteLine("\n==================================");
-            Console.ForegroundColor = ConsoleColor.Green;
-            System.Console.WriteLine("=== Escolha plano de estudo ===");
-            Console.ResetColor();
-            System.Console.WriteLine("==================================\n");
+            string resposta = "";
+            int? id = null;
+            do
+            {
+                System.Console.WriteLine("\n==================================");
+                Console.ForegroundColor = ConsoleColor.Green;
+                System.Console.WriteLine("=== Escolha plano de estudo ===");
+                Console.ResetColor();
+                System.Console.WriteLine("==================================\n");
 
-            Console.WriteLine("Digite o id do plano de estudo escolhido: ");
-            int id = int.Parse(Console.ReadLine()!);
+                id = Validacao.IntVazio("Digite o id do plano de estudo escolhido: ", ref resposta);
 
-            string sql = "SELECT * FROM Estudo WHERE id = @id";
+                if (id == null) continue;
+
+                resposta = "sucesso";
+
+            } while (resposta == "s");
+            if (resposta != "sucesso" || id == null) return -1;
+            string sql = "SELECT * FROM Estudo WHERE id = @id AND id_cliente = @id_cliente";
 
             using (SqlCommand cmd = new SqlCommand(sql, conn))
             {
-                cmd.Parameters.AddWithValue("@id", id);
-                Estudo.IniciarEstudo(id_cliente, id);
+                cmd.Parameters.AddWithValue("@id", id.Value);
+                cmd.Parameters.AddWithValue("@id_cliente", id_cliente);
+
+                using (SqlDataReader reader = cmd.ExecuteReader())
+                {
+                    if (reader.Read())
+                    {
+                        Estudo.IniciarEstudo(id_cliente, id.Value);
+                    }
+                    else
+                    {
+                        Mensagens.Erro_PlanoNaoEncontrado(id.Value);
+                        return -1;
+                    }
+                }
             }
-            return -1;
         }
+        return -1;
     }
+
+
+    /// <summary>
+    /// Exibe os detalhes da meta selecionada e permite iniciar,
+    /// editar ou concluir a sessão de estudo.
+    /// </summary>
+    /// <param name="id_cliente">Identificador do usuário.</param>
+    /// <param name="id_estudo">Identificador da meta.</param>
     public static void IniciarEstudo(int id_cliente, int id_estudo)
     {
 
@@ -341,24 +389,23 @@ public class Estudo
             using (SqlConnection conn = new SqlConnection(Banco.Conexao))
             {
                 conn.Open();
-                string sql = "SELECT * FROM Estudo WHERE id = @id";
+                string sql = "SELECT * FROM Estudo WHERE id = @id AND id_cliente = @id_cliente";
                 using (SqlCommand cmd = new SqlCommand(sql, conn))
                 {
 
                     cmd.Parameters.AddWithValue("@id", id_estudo);
+                    cmd.Parameters.AddWithValue("@id_cliente", id_cliente);
                     using (var Reader = cmd.ExecuteReader())
                     {
 
 
 
-                        Console.Clear();
-                        System.Console.WriteLine("\n===================================================================");
-                        Console.ForegroundColor = ConsoleColor.Green;
-                        System.Console.WriteLine("            === ATHENA - Seu plano de estudo ===        ");
-                        Console.ResetColor();
-                        System.Console.WriteLine("\n===================================================================\n");
+                        Interface.LimparTelaGeral();
+                        Interface.EscreverCentralizado("ATHENA -  Seu plano de estudo ");
+
 
                         if (Reader.Read())
+
                         {
                             bool concluido = Convert.ToBoolean(Reader["concluido"]);
 
@@ -396,7 +443,7 @@ public class Estudo
                                         Cronometro.AtualizarTempoTotalCliente(id_cliente, minutos);
                                         break;
                                     case 2:
-                                        Interface.PersoanlizarMetas(id_estudo);
+                                        Interface.PersonalizarMetas(id_estudo);
                                         break;
                                     case 3:
                                         Estudo.MarcarFinalizada(id_estudo);
@@ -409,14 +456,12 @@ public class Estudo
                             }
                             else
                             {
-                                Console.WriteLine("Digite um número válido!");
-                                Console.ReadKey();
+                                Mensagens.Erro_NumeroInvalido();
                             }
                         }
                         else
                         {
-                            Console.WriteLine($"Nenhum plano de estudo encontrado com o ID {id_estudo}.");
-                            Console.ReadKey();
+                            Mensagens.Erro_PlanoNaoEncontrado(id_estudo);
                         }
                     }
                 }
@@ -424,115 +469,154 @@ public class Estudo
             }
         }
     }
+
+
+    /// <summary>
+    /// Atualiza o título de uma meta.
+    /// </summary>
     public static int AtualizarTitulo(int id)
     {
         using (SqlConnection conn = new SqlConnection(Banco.Conexao))
         {
-
-            conn.Open();
-            System.Console.WriteLine("digite o novo tutulo");
-            string titulo = Console.ReadLine()!;
-            string sql = "UPDATE Estudo SET titulo = @titulo WHERE id = @id";
-
-            using (SqlCommand cmd = new SqlCommand(sql, conn))
+            string resposta = "";
+            do
             {
+                conn.Open();
+                Interface.LimparTelaGeral();
+                Interface.EscreverCentralizado("ATHENA -  Atualize a sua meta ");
 
+                string titulo = Validacao.EntradaObrigatoria("Defina um título para sua meta: ", ref resposta);
+                if (titulo == null) continue;
 
+                string sql = "UPDATE Estudo SET titulo = @titulo WHERE id = @id";
 
-                cmd.Parameters.AddWithValue("@id", id);
-                cmd.Parameters.AddWithValue("@titulo", titulo);
-
-                int linhasAfetadas = cmd.ExecuteNonQuery();
-
-                if (linhasAfetadas > 0)
+                using (SqlCommand cmd = new SqlCommand(sql, conn))
                 {
-                    Console.WriteLine("Título atualizado com sucesso!");
-                }
-                else
-                {
-                    Console.WriteLine("Nenhum estudo encontrado com esse ID.");
-                }
 
-            }
+                    cmd.Parameters.AddWithValue("@id", id);
+                    cmd.Parameters.AddWithValue("@titulo", titulo);
+
+                    int linhasAfetadas = cmd.ExecuteNonQuery();
+
+                    if (linhasAfetadas > 0)
+                    {
+                        Mensagens.Sucesso_AtualizarMeta("Titulo");
+                    }
+                    else
+                    {
+                        Mensagens.Erro_PlanoNaoEncontrado(id);
+                    }
+
+                }
+            } while (resposta == "s");
+
+            return -1;
         }
-
-        return -1;
     }
 
+
+    /// <summary>
+    /// Atualiza a descrição de uma meta.
+    /// </summary>
     public static int AtualizarDescricao(int id)
     {
         using (SqlConnection conn = new SqlConnection(Banco.Conexao))
         {
-
-            conn.Open();
-            System.Console.WriteLine("digite a descrucai");
-            string descricao = Console.ReadLine()!;
-            string sql = "UPDATE Estudo SET descricao = @descricao WHERE id = @id";
-
-            using (SqlCommand cmd = new SqlCommand(sql, conn))
+            string resposta = "";
+            do
             {
+                conn.Open();
+                Interface.EscreverCentralizado("ATHENA -  Atualize a sua meta ");
+                Interface.LimparTelaGeral();
 
+                string descricao = Validacao.EntradaObrigatoria("Defina uma descrição para sua meta: ", ref resposta);
+                if (descricao == null) continue;
 
+                string sql = "UPDATE Estudo SET descricao = @descricao WHERE id = @id";
 
-                cmd.Parameters.AddWithValue("@id", id);
-                cmd.Parameters.AddWithValue("@descricao", descricao);
-
-                int linhasAfetadas = cmd.ExecuteNonQuery();
-
-                if (linhasAfetadas > 0)
+                using (SqlCommand cmd = new SqlCommand(sql, conn))
                 {
-                    Console.WriteLine("Descrição atualizado com sucesso!");
-                }
-                else
-                {
-                    Console.WriteLine("Nenhum estudo encontrado com esse ID.");
-                }
+                    cmd.Parameters.AddWithValue("@id", id);
+                    cmd.Parameters.AddWithValue("@descricao", descricao);
 
-            }
+                    int linhasAfetadas = cmd.ExecuteNonQuery();
+
+                    if (linhasAfetadas > 0)
+                    {
+                        Mensagens.Sucesso_AtualizarMeta("Descrição");
+                    }
+                    else
+                    {
+                        Mensagens.Erro_PlanoNaoEncontrado(id);
+                    }
+
+
+                }
+            } while (resposta == "s");
         }
 
         return -1;
     }
 
+
+    /// <summary>
+    /// Atualiza a meta de minutos de estudo.
+    /// </summary>
     public static int AtualizarMeta(int id)
     {
         using (SqlConnection conn = new SqlConnection(Banco.Conexao))
         {
 
             conn.Open();
-            System.Console.WriteLine("digite a meta em minutos");
-            int meta_minutos = int.Parse(Console.ReadLine()!);
-            string sql = "UPDATE Estudo SET meta_minutos = @meta_minutos WHERE id = @id";
-
-            using (SqlCommand cmd = new SqlCommand(sql, conn))
+            string resposta = "";
+            do
             {
+                Interface.EscreverCentralizado("ATHENA -  Atualize sua meta ");
+                Interface.LimparTelaGeral();
 
-                cmd.Parameters.AddWithValue("@id", id);
-                cmd.Parameters.AddWithValue("@meta_minutos", meta_minutos);
+                string meta_minutos = Validacao.EntradaObrigatoria("Digite a meta em minutos: ", ref resposta);
+                if (meta_minutos == null) continue;
 
-                int linhasAfetadas = cmd.ExecuteNonQuery();
+                string sql = "UPDATE Estudo SET meta_minutos = @meta_minutos WHERE id = @id";
 
-                if (linhasAfetadas > 0)
+                using (SqlCommand cmd = new SqlCommand(sql, conn))
                 {
-                    Console.WriteLine("Descrição atualizado com sucesso!");
-                }
-                else
-                {
-                    Console.WriteLine("Nenhum estudo encontrado com esse ID.");
-                }
 
-            }
+                    cmd.Parameters.AddWithValue("@id", id);
+                    cmd.Parameters.AddWithValue("@meta_minutos", meta_minutos);
+
+                    int linhasAfetadas = cmd.ExecuteNonQuery();
+
+                    if (linhasAfetadas > 0)
+                    {
+                        Mensagens.Sucesso_AtualizarMeta("Meta");
+                    }
+                    else
+                    {
+                        Mensagens.Erro_PlanoNaoEncontrado(id);
+                    }
+
+                }
+            } while (resposta == "s");
         }
 
         return -1;
     }
+
+
+    /// <summary>
+    /// Marca uma meta como concluída.
+    /// </summary>
     public static void MarcarFinalizada(int id)
     {
         using (SqlConnection conn = new SqlConnection(Banco.Conexao))
         {
 
             conn.Open();
-            System.Console.WriteLine("Marcar a meta como finalizada? (s/n)");
+            Interface.EscreverCentralizado("ATHENA -  Marcar como finalizada ");
+            Interface.LimparTelaGeral();
+
+            System.Console.WriteLine("Deseja marcar a meta como finalizada? (s/n)");
             string concluido = Console.ReadLine()!;
             if (concluido == "s")
             {
@@ -548,11 +632,11 @@ public class Estudo
 
                     if (linhasAfetadas > 0)
                     {
-                        Console.WriteLine("Meta marcada como concluída com sucesso!");
+                        Mensagens.Sucesso_FinalizarApagarMeta("finalizada");
                     }
                     else
                     {
-                        Console.WriteLine("Nenhum estudo encontrado com esse ID.");
+                        Mensagens.Erro_PlanoNaoEncontrado(id);
                     }
                 }
 
@@ -560,18 +644,25 @@ public class Estudo
             else
             {
                 {
-                    Console.WriteLine("Operação cancelada.");
+                    Mensagens.Erro_Cancelada();
                 }
             }
         }
     }
 
+
+    /// <summary>
+    /// Remove uma meta do banco de dados após confirmação do usuário.
+    /// </summary>
     public static void ApagarMeta(int id)
     {
         using (SqlConnection conn = new SqlConnection(Banco.Conexao))
         {
+            Interface.LimparTelaGeral();
 
             conn.Open();
+            Interface.EscreverCentralizado("ATHENA -  Apague a sua meta ");
+
             System.Console.WriteLine("Apagar essa meta? (s/n)");
             string concluido = Console.ReadLine()!;
             if (concluido == "s")
@@ -588,11 +679,11 @@ public class Estudo
 
                     if (linhasAfetadas > 0)
                     {
-                        Console.WriteLine("Deletado com sucesso");
+                        Mensagens.Sucesso_FinalizarApagarMeta("apagada");
                     }
                     else
                     {
-                        Console.WriteLine("Nenhum estudo encontrado com esse ID.");
+                        Mensagens.Erro_PlanoNaoEncontrado(id);
                     }
                 }
 
@@ -600,7 +691,7 @@ public class Estudo
             else
             {
                 {
-                    Console.WriteLine("Operação cancelada.");
+                    Mensagens.Erro_Cancelada();
                 }
             }
         }

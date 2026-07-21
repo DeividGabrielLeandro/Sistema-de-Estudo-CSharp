@@ -1,14 +1,24 @@
 namespace Init_db;
 
-using System.Data.Common;
-using System.Runtime.ConstrainedExecution;
+
 using Microsoft.Data.SqlClient;
 
-
+/// <summary>
+/// Gerencia as operações relacionadas aos usuários do sistema,
+/// como cadastro, autenticação e consulta de informações.
+/// </summary>
 public class Cliente
 {
+    
+    /// <summary>
+    /// Realiza o cadastro de um novo usuário no banco de dados.
+    /// </summary>
+    /// <returns>
+    /// Retorna o identificador do usuário cadastrado ou -1 caso o cadastro não seja concluído.
+    /// </returns>
     public int CadastrarCliente()
     {
+
         using (SqlConnection conn = new SqlConnection(Banco.Conexao))
         {
             conn.Open();
@@ -18,29 +28,20 @@ public class Cliente
                 string resposta = "";
                 do
                 {
+                    // Remove parâmetros da tentativa anterior antes de reutilizar o mesmo comando SQL.
+                    cmd.Parameters.Clear();
+                    Interface.LimparTelaGeral();
+                    Interface.EscreverCentralizado("ATHENA -  Crie seu cadastro ");
 
-                    Console.Clear();
-                    System.Console.WriteLine("===================================================================");
-                    Console.ForegroundColor = ConsoleColor.Green;
-                    System.Console.WriteLine("                     === CRIE O SEU CADASTRO===                    ");
-                    Console.ResetColor();
-                    System.Console.WriteLine("===================================================================\n");
+                    string nome_completo = Validacao.EntradaObrigatoria("Digite seu nome completo: ", ref resposta);
+                    if (nome_completo == null) continue;
+                    string email = Validacao.EntradaObrigatoria("Digite seu email: ", ref resposta);
+                    if (email == null) continue;
+                    string usuario = Validacao.EntradaObrigatoria("Crie seu usuário: ", ref resposta);
+                    if (usuario == null) continue;
+                    string senha = Validacao.EntradaObrigatoria("Crie sua senha: ", ref resposta);
+                    if (senha == null) continue;
 
-                    System.Console.WriteLine("Digite seu nome completo: ");
-                    string nome_completo = Console.ReadLine()!;
-                    System.Console.WriteLine();
-
-                    System.Console.WriteLine("Digite seu nome email: ");
-                    string email = Console.ReadLine()!;
-                    System.Console.WriteLine();
-
-                    System.Console.WriteLine("Crie seu usuário: ");
-                    string usuario = Console.ReadLine()!;
-                    System.Console.WriteLine();
-
-                    System.Console.WriteLine("Digite sua senha: ");
-                    string senha = Console.ReadLine()!;
-                    System.Console.WriteLine();
                     cmd.Parameters.AddWithValue("@nome_completo", nome_completo);
                     cmd.Parameters.AddWithValue("@email", email);
                     cmd.Parameters.AddWithValue("@usuario", usuario);
@@ -48,20 +49,22 @@ public class Cliente
                     try
                     {
                         int id_gerado = (int)cmd.ExecuteScalar();
-                        System.Console.WriteLine();
-                        Console.WriteLine("CLIENTE CADASTRADO COM SUCESSO!");
+                        Mensagens.Sucesso_CadastroSucesso();
                         return id_gerado;
                     }
                     catch (SqlException ex)
                     {
                         if (ex.Number == 2627)
                         {
-                            Console.ForegroundColor = ConsoleColor.Red;
-                            System.Console.WriteLine("Não foi possível concluir o cadastro. Verifique os dados informados ou utilize outras informações.\n");
-                            Console.ResetColor();
+                            Mensagens.Erro_InformacoesInvalidas();
                             System.Console.WriteLine("Tentar novamente? (s/n)");
                             resposta = Console.ReadLine()!;
-                            return -1;
+                            if (resposta != "s")
+                            {
+                                return -1;
+                            }
+
+                            continue;
                         }
 
                         throw;
@@ -69,9 +72,19 @@ public class Cliente
                     }
 
                 } while (resposta == "s");
+
             }
+            return -1;
         }
     }
+
+
+    /// <summary>
+    /// Valida as credenciais informadas e realiza a autenticação do usuário.
+    /// </summary>
+    /// <returns>
+    /// Retorna o identificador do usuário autenticado ou -1 caso o login não seja realizado.
+    /// </returns>
     public int FazerLogin()
     {
         using (SqlConnection conn = new SqlConnection(Banco.Conexao))
@@ -83,18 +96,13 @@ public class Cliente
             Console.Clear();
             do
             {
-                System.Console.WriteLine("===================================================================");
-                Console.ForegroundColor = ConsoleColor.Green;
-                System.Console.WriteLine("                    === FAÇA O SEU CADASTRO ===                   ");
-                Console.ResetColor();
-                System.Console.WriteLine("===================================================================\n");
-                System.Console.WriteLine("Digite o seu usuário: ");
-                string Login = Console.ReadLine()!;
-                System.Console.WriteLine();
+                Interface.LimparTelaGeral();
+                Interface.EscreverCentralizado("ATHENA -  Faça o seu cadastro ");
 
-                System.Console.WriteLine("Digite a sua senha: ");
-                string Senha = Console.ReadLine()!;
-                System.Console.WriteLine();
+                string Login = Validacao.EntradaObrigatoria("Digite seu usuário: ", ref resposta);
+                if (Login == null) continue;
+                string Senha = Validacao.EntradaObrigatoria("Digite sua senha: ", ref resposta);
+                if (Senha == null) continue;
 
 
                 string sql = @" SELECT id FROM Cliente WHERE usuario = @usuario AND senha = @senha";
@@ -108,14 +116,10 @@ public class Cliente
 
                     if (resultado != null)
                     {
-                        Console.WriteLine("✅ Login realizado com sucesso!");
-
+                        Mensagens.Sucesso_LoginSucesso();
                         return (int)resultado;
                     }
-                    Console.ForegroundColor = ConsoleColor.Red;
-                    Console.WriteLine("Usuário ou senha inválidos!");
-                    Console.ResetColor();
-
+                    Mensagens.Erro_LoginErro();
                     System.Console.WriteLine("Tentar novamente?(s/n)");
                     resposta = Console.ReadLine()!;
                 }
@@ -124,6 +128,12 @@ public class Cliente
         return -1;
     }
 
+
+    /// <summary>
+    /// Obtém o nome do usuário a partir do identificador informado.
+    /// </summary>
+    /// <param name="id">Identificador do usuário.</param>
+    /// <returns>Nome completo do usuário.</returns>
     public string ObterNomeCliente(int id)
     {
         using (SqlConnection conn = new SqlConnection(Banco.Conexao))
@@ -140,6 +150,13 @@ public class Cliente
             }
         }
     }
+
+
+    /// <summary>
+    /// Retorna o tempo total de estudo acumulado pelo usuário.
+    /// </summary>
+    /// <param name="idCliente">Identificador do usuário.</param>
+    /// <returns>Total de minutos estudados.</returns>
     public static double MostrarTempoTotalEstudo(int idCliente)
     {
         using (SqlConnection conn = new SqlConnection(Banco.Conexao))
@@ -165,7 +182,12 @@ public class Cliente
         }
     }
 
-    public static double MostrarMetasPendentes(int idCliente)
+
+    /// <summary>
+    /// Retorna a quantidade de metas pendentes do usuário.
+    /// </summary>
+    ///<param name="idCliente">Identificador do usuário.</param>
+    public static double ContarMetasPendentes(int idCliente)
     {
         using (SqlConnection conn = new SqlConnection(Banco.Conexao))
         {
@@ -189,49 +211,59 @@ public class Cliente
     }
 
 
-        public static double MostrarMetasConcluidas(int idCliente)
+    /// <summary>
+    /// Retorna a quantidade de metas concluídas do usuário.
+    /// </summary>
+    /// <param name="idCliente">Identificador do usuário.</param>
+    public static double ContarMetasConcluidas(int idCliente)
+    {
+        using (SqlConnection conn = new SqlConnection(Banco.Conexao))
         {
-            using (SqlConnection conn = new SqlConnection(Banco.Conexao))
+            conn.Open();
+
+            string sql = "SELECT COUNT(*) FROM Estudo WHERE id_cliente = @id_cliente AND concluido = 1";
+
+            using (SqlCommand cmd = new SqlCommand(sql, conn))
             {
-                conn.Open();
+                cmd.Parameters.AddWithValue("@id_cliente", idCliente);
+                object resultado = cmd.ExecuteScalar();
 
-                string sql = "SELECT COUNT(*) FROM Estudo WHERE id_cliente = @id_cliente AND concluido = 1";
-
-                using (SqlCommand cmd = new SqlCommand(sql, conn))
+                if (resultado != null && resultado != DBNull.Value)
                 {
-                    cmd.Parameters.AddWithValue("@id_cliente", idCliente);
-                    object resultado = cmd.ExecuteScalar();
-
-                    if (resultado != null && resultado != DBNull.Value)
-                    {
-                        return Convert.ToDouble(resultado);
-                    }
-
-                    return 0;
+                    return Convert.ToDouble(resultado);
                 }
+
+                return 0;
             }
         }
-        public static double MostrarTodasMetas(int idCliente)
+    }
+
+
+    /// <summary>
+    /// Retorna a quantidade total de metas cadastradas pelo usuário.
+    /// </summary>
+    /// <param name="idCliente">Identificador do usuário.</param>
+    public static double ContarTodasMetas(int idCliente)
+    {
+        using (SqlConnection conn = new SqlConnection(Banco.Conexao))
         {
-            using (SqlConnection conn = new SqlConnection(Banco.Conexao))
+            conn.Open();
+
+            string sql = "SELECT COUNT(*) FROM Estudo WHERE id_cliente = @id_cliente";
+
+            using (SqlCommand cmd = new SqlCommand(sql, conn))
             {
-                conn.Open();
+                cmd.Parameters.AddWithValue("@id_cliente", idCliente);
+                object resultado = cmd.ExecuteScalar();
 
-                string sql = "SELECT COUNT(*) FROM Estudo WHERE id_cliente = @id_cliente";
-
-                using (SqlCommand cmd = new SqlCommand(sql, conn))
+                if (resultado != null && resultado != DBNull.Value)
                 {
-                    cmd.Parameters.AddWithValue("@id_cliente", idCliente);
-                    object resultado = cmd.ExecuteScalar();
-
-                    if (resultado != null && resultado != DBNull.Value)
-                    {
-                        return Convert.ToDouble(resultado);
-                    }
-
-                    return 0;
+                    return Convert.ToDouble(resultado);
                 }
+
+                return 0;
             }
         }
+    }
 
 }

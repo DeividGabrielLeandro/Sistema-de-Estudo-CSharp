@@ -6,19 +6,25 @@ using System;
 using System.Diagnostics;
 using System.Threading;
 
+/// <summary>
+/// Gerencia o cronômetro de estudo e o registro do tempo
+/// dedicado às metas do usuário.
+/// </summary>
 public class Cronometro
 {
+
+    /// <summary>
+    /// Inicia o cronômetro e retorna o tempo total de estudo em minutos.
+    /// A contagem é encerrada quando o usuário pressiona uma tecla.
+    /// </summary>
+    /// <returns>Total de minutos estudados.</returns>
     public static double ContarTempo()
     {
+        Interface.LimparTelaGeral();
+        Interface.EscreverCentralizado("ATHENA - Cronometro ");
 
-       Console.Clear();
-        System.Console.WriteLine("\n===================================================================");
-        Console.ForegroundColor = ConsoleColor.Green;
-        System.Console.WriteLine("                  === CRONOMETRO DE ESTUDO ===        ");
-        Console.ResetColor();
-        System.Console.WriteLine("===================================================================\n");
 
-        System.Console.WriteLine(" \"A educação é a arma mais poderosa que você pode usar para mudar o mundo.\" - Nelson Mandela\n");
+        System.Console.WriteLine(Textos.MensagemMotivacional_NelsonMandela);
 
         System.Console.WriteLine("\n===================================================================\n");
 
@@ -59,6 +65,13 @@ public class Cronometro
         return minutos;
     }
 
+
+
+    /// <summary>
+    /// Salva o tempo estudado na meta informada.
+    /// </summary>
+    /// <param name="id_estudo">Identificador da meta.</param>
+    /// <param name="minutos">Quantidade de minutos estudados.</param>
     public static void SalvarTempo(int id_estudo, double minutos)
     {
         using (SqlConnection conn = new SqlConnection(Banco.Conexao))
@@ -77,12 +90,19 @@ public class Cronometro
 
         }
     }
+
+
+    /// <summary>
+    /// Atualiza o tempo total de estudo acumulado pelo usuário.
+    /// </summary>
+    /// <param name="id_cliente">Identificador do usuário.</param>
+    /// <param name="minutos">Quantidade de minutos a ser adicionada ao total.</param>
     public static void AtualizarTempoTotalCliente(int id_cliente, double minutos)
     {
         using (SqlConnection conn = new SqlConnection(Banco.Conexao))
         {
             conn.Open();
-            string sql =@"
+            string sql = @"
             UPDATE Cliente
             SET TotalMinutosEstudados = TotalMinutosEstudados + @minutos
             WHERE id = @id";
