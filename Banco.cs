@@ -13,5 +13,5 @@ public static class Banco
     /// String de conexão com o banco de dados SQL Server.
     /// </summary>
     public static readonly string Conexao =
-        @"Server=.\SQLEXPRESS;Database=StudyTrackerDB;Trusted_Connection=True;TrustServerCertificate=True;";
+        @"Server=.\SQLEXPRESS;Database=StudyTrackerDB;Trusted_Connection=True;TrustServerCertificate=True;MultipleActiveResultSets=True;";
 }

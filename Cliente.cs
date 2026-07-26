@@ -9,7 +9,7 @@ using Microsoft.Data.SqlClient;
 /// </summary>
 public class Cliente
 {
-    
+
     /// <summary>
     /// Realiza o cadastro de um novo usuário no banco de dados.
     /// </summary>
@@ -45,7 +45,7 @@ public class Cliente
                     cmd.Parameters.AddWithValue("@nome_completo", nome_completo);
                     cmd.Parameters.AddWithValue("@email", email);
                     cmd.Parameters.AddWithValue("@usuario", usuario);
-                    cmd.Parameters.AddWithValue("@senha", senha);
+                    cmd.Parameters.AddWithValue("@senha", Hash.CriaHash(senha));
                     try
                     {
                         int id_gerado = (int)cmd.ExecuteScalar();
@@ -90,10 +90,10 @@ public class Cliente
         using (SqlConnection conn = new SqlConnection(Banco.Conexao))
 
         {
-            Console.Clear();
             conn.Open();
             string resposta = "";
-            Console.Clear();
+            bool usuarioEncontrado = false;
+            string senhaHashSalva = "";
             do
             {
                 Interface.LimparTelaGeral();
@@ -105,24 +105,37 @@ public class Cliente
                 if (Senha == null) continue;
 
 
-                string sql = @" SELECT id FROM Cliente WHERE usuario = @usuario AND senha = @senha";
+                string sql = @"SELECT id, senha FROM Cliente WHERE usuario = @usuario";
 
                 using (SqlCommand cmd = new SqlCommand(sql, conn))
                 {
                     cmd.Parameters.AddWithValue("@usuario", Login);
-                    cmd.Parameters.AddWithValue("@senha", Senha);
-
+                    using (SqlDataReader leitor = cmd.ExecuteReader())
+                    {
+                        if (leitor.Read())
+                        {
+                            int idDoBanco = leitor.GetInt32(0);
+                            senhaHashSalva = leitor.GetString(1);
+                            usuarioEncontrado = true;
+                        }
+                    }
                     object resultado = cmd.ExecuteScalar();
 
-                    if (resultado != null)
+
+                    if (usuarioEncontrado && Hash.VerificaHash(Senha, senhaHashSalva))
                     {
                         Mensagens.Sucesso_LoginSucesso();
                         return (int)resultado;
                     }
-                    Mensagens.Erro_LoginErro();
+                    else
+                    {
+                        Mensagens.Erro_LoginErro();
+                    }
                     System.Console.WriteLine("Tentar novamente?(s/n)");
                     resposta = Console.ReadLine()!;
                 }
+
+
             } while (resposta == "s");
         }
         return -1;
