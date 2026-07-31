@@ -40,6 +40,24 @@ Continue sua jornada de conhecimento e transforme disciplina
 em resultados. Cada minuto dedicado aos estudos é um passoa mais 
 em direção aos seus objetivos.";
     public static readonly string MensagemMotivacional_NelsonMandela =
-    @"""A educação é a arma mais poderosa que você pode usar para mudar o mundo.\"" - Nelson Mandela";
+    @"""A educação é a arma mais poderosa que você pode usar para mudar o mundo."" - Nelson Mandela";
+    public static readonly string MensagemMotivacional_Seneca =
+    @"""Não é que temos pouco tempo, mas sim que desperdiçamos muito dele"" - Sêneca";
 
+    public static readonly string TituloAthena = @"
+ █████  ████████ ██   ██ ████████ ███    ██  █████  
+██   ██    ██    ██   ██ ██       ████   ██ ██   ██ 
+███████    ██    ███████ █████    ██ ██  ██ ███████ 
+██   ██    ██    ██   ██ ██       ██  ██ ██ ██   ██ 
+██   ██    ██    ██   ██ ████████ ██   ████ ██   ██ ";
+
+public static readonly string MensagemCadastro = @"
+Junte-se ao Athena! Crie sua conta para acompanhar seu progresso, 
+definir metas e organizar sua jornada de estudos.";
+public static readonly string MensagemLogin = @"
+Que bom ter você de volta! 
+Faça login para continuar de onde parou e focar nas suas metas hoje.";
+public static readonly string MensagemMeta = @"
+Defina uma nova meta para organizar sua rotina. 
+Escolha um título claro e uma breve descrição do seu objetivo.";
 }

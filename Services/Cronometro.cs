@@ -1,7 +1,7 @@
 namespace Init_db;
 
 using Microsoft.Data.SqlClient;
-
+using Spectre.Console;
 using System;
 using System.Diagnostics;
 using System.Threading;
@@ -21,12 +21,13 @@ public class Cronometro
     public static double ContarTempo()
     {
         Interface.LimparTelaGeral();
-        Interface.EscreverCentralizado("ATHENA - Cronometro ");
+        Interface.Titulo("CRONOMETRO");
 
 
         System.Console.WriteLine(Textos.MensagemMotivacional_NelsonMandela);
 
-        System.Console.WriteLine("\n===================================================================\n");
+
+        System.Console.WriteLine("\n──────────────────────────────────────────────────────────────────\n");
 
 
         Console.WriteLine("Pressione qualquer tecla para parar o contador...");
@@ -39,18 +40,21 @@ public class Cronometro
             Console.ReadKey(true);
         }
 
+       AnsiConsole.Status()
+    .Spinner(Spinner.Known.TimeTravel)
+    .SpinnerStyle(Style.Parse("red"))
+    .Start("Cronometrando...", ctx =>
+    {
+        Stopwatch sw = Stopwatch.StartNew();
+
         while (!Console.KeyAvailable)
         {
-            Console.ForegroundColor = ConsoleColor.Green;
-
-            string tempoDecorrido = cronometro.Elapsed.ToString(@"hh\:mm\:ss");
-            Console.Write($"\rTempo:        {tempoDecorrido}");
-            Console.ResetColor();
-
-
-            Thread.Sleep(1000);
+            ctx.Status($"[#EF0606]Tempo: {sw.Elapsed:hh\\:mm\\:ss}[/]");
+            Thread.Sleep(200);
         }
+
         Console.ReadKey(true);
+    });
         cronometro.Stop();
 
         while (Console.KeyAvailable)

@@ -1,4 +1,5 @@
 namespace Init_db;
+using Spectre.Console;
 
 /// <summary>
 /// Centraliza as mensagens exibidas pelo sistema.
@@ -36,10 +37,8 @@ public class Mensagens
     public static void Erro_InformacoesInvalidas()
     {
         Console.ForegroundColor = ConsoleColor.Red;
-        System.Console.WriteLine("Não foi possível concluir o cadastro. Verifique os dados informados ou utilize outras informações.\n");
+        System.Console.WriteLine("\nNão foi possível concluir o cadastro. Verifique os dados informados ou utilize outras informações.");
         Console.ResetColor();
-        System.Console.WriteLine("\nAperte qualquer tecla para voltar.");
-        Console.ReadKey();
 
     }
     public static void Erro_SemInformacoes()
@@ -123,4 +122,31 @@ public class Mensagens
         Console.ReadKey();
     }
     #endregion
+
+
+    public static string TentarNovamente(string resposta)
+    {
+        resposta = AnsiConsole.Prompt(new SelectionPrompt<string>()
+             .Title("\n[#D3CCC7]─────────────────────────────────[/]\n[#D3CCC7] Tentar novamente?[/]\n[#D3CCC7]─────────────────────────────────[/]")
+             .HighlightStyle(new Style(foreground: Color.FromHex("#EF0606")))
+             .AddChoices("Tentar novamente","Sair")
+             .HighlightStyle(new Style(
+              foreground: Color.FromHex("#EF0606"), decoration: Decoration.Bold
+             )));
+
+        return resposta;
+    }
+    public static string IniciarEstudo()
+    {
+        string resposta = "";
+        resposta = AnsiConsole.Prompt(new SelectionPrompt<string>()
+             .Title("\n[#D3CCC7]─────────────────────────────────[/]\n[#D3CCC7] Iniciar algum plano de estudo?[/]\n[#D3CCC7]─────────────────────────────────[/]")
+             .HighlightStyle(new Style(foreground: Color.FromHex("#EF0606")))
+             .AddChoices("Sim","Não")
+             .HighlightStyle(new Style(
+              foreground: Color.FromHex("#EF0606"), decoration: Decoration.Bold
+             )));
+
+        return resposta;
+    }
 }
