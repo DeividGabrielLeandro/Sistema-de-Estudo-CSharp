@@ -28,13 +28,12 @@ public class Interface
     {
         AnsiConsole.Clear();
 
-
-        AnsiConsole.MarkupLine($"[#EF0606]{Textos.TituloAthena}[/]\n");
+        AnsiConsole.MarkupLine($"[{Cores.Titulo}]{Textos.TituloAthena}[/]\n\n");
 
         // Linha de baixo
-        AnsiConsole.Write(new Spectre.Console.Rule($"[#D3CCC7]{conteudo.ToUpper()}[/]")
+        AnsiConsole.Write(new Spectre.Console.Rule($"[{Cores.Divisao}]{conteudo.ToUpper()}[/]")
         {
-            Style = Style.Parse("#EF0606")
+            Style = Style.Parse($"{Cores.Divisao}")
         });
         AnsiConsole.WriteLine();
     }
@@ -49,6 +48,13 @@ public class Interface
 
         AnsiConsole.MarkupLine(Textos.Sobre);
 
+        Mensagens.Sair();
+    }
+    public static void Atualizacoes()
+    {
+        LimparTelaGeral();
+        Titulo("ATUALIZAÇÕES FUTURAS");
+        AnsiConsole.MarkupLine(Textos.Atualizacoes);
         Mensagens.Sair();
     }
 
@@ -69,16 +75,16 @@ public class Interface
             LimparTelaGeral();
 
             Interface.Titulo("SISTEMA DE GERENCIAMENTO DE ESTUDO");
-            AnsiConsole.MarkupLine("Bem-vindo ao [#EFEEE8]Athena![/]\n");
+            AnsiConsole.MarkupLine($"[{Cores.TextosDestaque}]Bem-vindo ao Athena![/]\n");
             System.Console.WriteLine(Textos.MensagemInicial);
 
             opcao = AnsiConsole.Prompt(
             new SelectionPrompt<string>()
             .Title("\n[#D3CCC7]─────────────────────────────────[/]\n[#D3CCC7]             OPÇÕES[/]\n[#D3CCC7]─────────────────────────────────[/]")
-            .HighlightStyle(new Style(foreground: Color.FromHex("#EF0606")))
-            .AddChoices("Sobre o projeto", "Criar cadastro", "Fazer cadastro", "Sair")
+            .HighlightStyle(new Style(foreground: Color.FromHex($"{Cores.Opcoes}")))
+            .AddChoices("Sobre o projeto", "Criar cadastro", "Faça seu login", "Sair")
             .HighlightStyle(new Style(
-             foreground: Color.FromHex("#EF0606"), decoration: Decoration.Bold
+             foreground: Color.FromHex($"{Cores.Opcoes}"), decoration: Decoration.Bold
 )));
 
             switch (opcao)
@@ -94,7 +100,7 @@ public class Interface
                         Interface.InterfaceLogin(id);
                     }
                     break;
-                case "Fazer cadastro":
+                case "Faça seu login":
 
                     id = cliente.FazerLogin();
 
@@ -135,15 +141,15 @@ public class Interface
 
             LimparTelaGeral();
             Titulo("PAINEL DO ESTUDANTE");
-            AnsiConsole.MarkupLine($"\nBem-vindo(a) {Nome}!!\n");
+            AnsiConsole.MarkupLine($"\n[{Cores.TextosDestaque}]Bem-vindo(a) {Nome}!![/]\n\n");
 
             var painelEstudante = new Panel(@$"Seus minutos estudados: {tempoEstudo}
 Metas criadas: {totalMetas}
 Metas pendentes: {metasPendentes}
 Metas concluídas: {metasConcluidas}")
 .Border(BoxBorder.Rounded)
-.BorderColor(Color.FromHex("#d02c2c"))
-.Header("[#EF0606]Suas informações[/]", Justify.Center);
+.BorderColor(Color.FromHex($"{Cores.Opcoes}"))
+.Header($"[{Cores.TextosDestaque}]Suas informações[/]", Justify.Center);
 
             AnsiConsole.Write(painelEstudante);
 
@@ -154,10 +160,10 @@ Metas concluídas: {metasConcluidas}")
             opcao = AnsiConsole.Prompt(
         new SelectionPrompt<string>()
         .Title("\n[#D3CCC7]─────────────────────────────────[/]\n[#D3CCC7]             OPÇÕES[/]\n[#D3CCC7]─────────────────────────────────[/]")
-        .HighlightStyle(new Style(foreground: Color.FromHex("#EF0606")))
-        .AddChoices("Criar nova meta", "Abrir menu para mostrar as metas", "Iniciar um estudo livre", "Sair")
+        .HighlightStyle(new Style(foreground: Color.FromHex($"{Cores.Opcoes}")))
+        .AddChoices("Criar nova meta", "Gerenciar metas", "Criar novas categorias", "Escolher categoria", "Iniciar um estudo livre", "Visualizar futuras atualizações", "Sair")
         .HighlightStyle(new Style(
-        foreground: Color.FromHex("#EF0606"), decoration: Decoration.Bold))
+        foreground: Color.FromHex($"{Cores.Opcoes}"), decoration: Decoration.Bold))
          );
 
             switch (opcao)
@@ -169,10 +175,21 @@ Metas concluídas: {metasConcluidas}")
                     totalMetas = InformacaoCliente.ContarTodasMetas(id);
                     metasPendentes = InformacaoCliente.ContarMetasPendentes(id);
                     break;
-                case "Abrir menu para mostrar as metas":
+                case "Gerenciar metas":
                     Interface.MostrarOpcoesMetas(id);
                     metasPendentes = InformacaoCliente.ContarMetasPendentes(id);
                     metasConcluidas = InformacaoCliente.ContarMetasConcluidas(id);
+                    break;
+                case "Criar novas categorias":
+                    Categoria.CriarCategoria(id);
+                    break;
+                case "Escolher categoria":
+                    int id_categoria = Categoria.MostrarCategorias(id);
+                    if (id_categoria != -1)
+                    {
+                        GerenciaCategorias.IniciarCategoria(id_categoria,id);
+                    }
+
                     break;
                 case "Iniciar um estudo livre":
                     double minutos = Cronometro.ContarTempo();
@@ -181,6 +198,9 @@ Metas concluídas: {metasConcluidas}")
                     Cronometro.AtualizarTempoTotalCliente(id, minutos);
                     tempoEstudo = InformacaoCliente.MostrarTempoTotalEstudo(id);
 
+                    break;
+                case "Visualizar futuras atualizações":
+                    Atualizacoes();
                     break;
                 case "Sair":
                     sair = true;
@@ -208,7 +228,7 @@ Metas concluídas: {metasConcluidas}")
             opcao = AnsiConsole.Prompt(
 new SelectionPrompt<string>()
         .Title("\n[#D3CCC7]─────────────────────────────────[/]\n[#D3CCC7]             OPÇÕES[/]\n[#D3CCC7]─────────────────────────────────[/]")
-.HighlightStyle(new Style(foreground: Color.FromHex("#EF0606")))
+.HighlightStyle(new Style(foreground: Color.FromHex($"{Cores.Opcoes}")))
 .AddChoices("Atualizar título", "Atualizar descrição", "Atualizar tempo de meta", "Apagar meta", "Sair")
 );
 
@@ -224,7 +244,12 @@ new SelectionPrompt<string>()
                     GerenciaMetas.AtualizarMeta(id_estudo);
                     break;
                 case "Apagar meta":
-                    GerenciaMetas.ApagarMeta(id_estudo);
+                    bool apagou = GerenciaMetas.ApagarMeta(id_estudo);
+
+                    if (apagou)
+                    {
+                        return;
+                    }
                     break;
                 case "Sair":
                     sair = true;
@@ -245,35 +270,105 @@ new SelectionPrompt<string>()
         while (!sair)
         {
             LimparTelaGeral();
-            Titulo("ATHENA - Filtrar metas");
+            Titulo("VISUALIZAR METAS");
 
             opcao = AnsiConsole.Prompt(
 new SelectionPrompt<string>()
         .Title("\n[#D3CCC7]─────────────────────────────────[/]\n[#D3CCC7]             OPÇÕES[/]\n[#D3CCC7]─────────────────────────────────[/]")
-.HighlightStyle(new Style(foreground: Color.FromHex("#EF0606")))
-.AddChoices("Ver todas as metas", "Mostrar apenas as metas concluídas", "Mostrar apenas as metas pendentes", "Pesquisar meta pelo título", "Sair")
+.HighlightStyle(new Style(foreground: Color.FromHex($"{Cores.Opcoes}")))
+.AddChoices(
+"Ver todas as metas", "Pesquisar", "Filtros", "Ordenar", "Sair")
 );
 
             switch (opcao)
             {
                 case "Ver todas as metas":
-                    Estudo.MostrarMetas(id);
+                    Estudo.MostrarMetas(id, false);
                     break;
-                case "Mostrar apenas as metas concluídas":
-                    Estudo.MostrarMetasConcluidas(id);
-                    break;
-                case "Mostrar apenas as metas pendentes":
-                    Estudo.MostrarMetasPendentes(id);
-                    break;
-                case "Pesquisar meta pelo título":
+                case "Pesquisar":
                     System.Console.WriteLine("Pesquise: ");
                     string pesquisa = Console.ReadLine()!;
                     Estudo.PesquisarMeta(pesquisa, id);
+                    break;
+                case "Filtros":
+                    Interface.FiltrosMetas(id, "Filtros");
+                    break;
+                case "Ordenar":
+                    Interface.FiltrosMetas(id, "Ordenação");
                     break;
                 case "Sair":
                     sair = true;
                     break;
 
+            }
+
+        }
+    }
+
+    public static void FiltrosMetas(int id, string escolha)
+    {
+        string opcao = "";
+        bool sair = false;
+        while (!sair)
+        {
+            if (escolha == "Filtros")
+            {
+                LimparTelaGeral();
+                Titulo("FILTROS");
+
+                opcao = AnsiConsole.Prompt(
+    new SelectionPrompt<string>()
+            .Title("\n[#D3CCC7]─────────────────────────────────[/]\n[#D3CCC7]             OPÇÕES[/]\n[#D3CCC7]─────────────────────────────────[/]")
+    .HighlightStyle(new Style(foreground: Color.FromHex($"{Cores.Opcoes}")))
+    .AddChoices(
+     "Mostrar ultimas metas criadas", "Mostrar metas concluídas",
+    "Mostrar metas pendentes", "Sair")
+    );
+
+                switch (opcao)
+                {
+                    case "Mostrar metas concluídas":
+                        Estudo.MostrarMetasConcluidas(id);
+                        break;
+                    case "Mostrar metas pendentes":
+                        Estudo.MostrarMetasPendentes(id);
+                        break;
+                    case "Mostrar ultimas metas criadas":
+                        Estudo.MostrarUltimasCriadas(id);
+                        break;
+                    case "Sair":
+                        sair = true;
+                        break;
+
+                }
+
+            }
+            else if (escolha == "Ordenação")
+            {
+                LimparTelaGeral();
+                Titulo("ORDENAR");
+
+                opcao = AnsiConsole.Prompt(
+    new SelectionPrompt<string>()
+            .Title("\n[#D3CCC7]─────────────────────────────────[/]\n[#D3CCC7]             OPÇÕES[/]\n[#D3CCC7]─────────────────────────────────[/]")
+    .HighlightStyle(new Style(foreground: Color.FromHex($"{Cores.Opcoes}")))
+    .AddChoices(
+     "Ordenar por título","Ordenar por tempo estudado", "Sair")
+    );
+
+                switch (opcao)
+                {
+                    case "Ordenar por título":
+                        Estudo.OrdenarPorTitulo(id);
+                        break;
+                    case "Ordenar por tempo estudado":
+                        Estudo.OrdenarPorTempoEstudado(id);
+                        break;
+                    case "Sair":
+                        sair = true;
+                        break;
+
+                }
             }
 
         }

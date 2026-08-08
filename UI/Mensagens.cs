@@ -112,6 +112,30 @@ public class Mensagens
         System.Console.WriteLine("\nAperte qualquer tecla para voltar.");
         Console.ReadKey();
     }
+    public static void CriarCategoria()
+    {
+        Console.ForegroundColor = ConsoleColor.Green;
+        Console.WriteLine($"\nCategoria criada com sucesso!");
+        Console.ResetColor();
+        System.Console.WriteLine("\nAperte qualquer tecla para voltar.");
+        Console.ReadKey();
+    }
+    public static void RemoverMeta()
+    {
+        Console.ForegroundColor = ConsoleColor.Green;
+        Console.WriteLine($"\nMeta removida com sucesso!!");
+        Console.ResetColor();
+        System.Console.WriteLine("\nAperte qualquer tecla para voltar.");
+        Console.ReadKey();
+    }
+    public static void AtualizarNomeCatetoria()
+    {
+        Console.ForegroundColor = ConsoleColor.Green;
+        Console.WriteLine($"\nTitulo atualizado com sucesso!!");
+        Console.ResetColor();
+        System.Console.WriteLine("\nAperte qualquer tecla para voltar.");
+        Console.ReadKey();
+    }
 
     #endregion
     #region Mensagens neutras
@@ -128,10 +152,10 @@ public class Mensagens
     {
         resposta = AnsiConsole.Prompt(new SelectionPrompt<string>()
              .Title("\n[#D3CCC7]─────────────────────────────────[/]\n[#D3CCC7] Tentar novamente?[/]\n[#D3CCC7]─────────────────────────────────[/]")
-             .HighlightStyle(new Style(foreground: Color.FromHex("#EF0606")))
+             .HighlightStyle(new Style(foreground: Color.FromHex($"{Cores.Opcoes}")))
              .AddChoices("Tentar novamente","Sair")
              .HighlightStyle(new Style(
-              foreground: Color.FromHex("#EF0606"), decoration: Decoration.Bold
+              foreground: Color.FromHex($"{Cores.Opcoes}"), decoration: Decoration.Bold
              )));
 
         return resposta;
@@ -141,10 +165,23 @@ public class Mensagens
         string resposta = "";
         resposta = AnsiConsole.Prompt(new SelectionPrompt<string>()
              .Title("\n[#D3CCC7]─────────────────────────────────[/]\n[#D3CCC7] Iniciar algum plano de estudo?[/]\n[#D3CCC7]─────────────────────────────────[/]")
-             .HighlightStyle(new Style(foreground: Color.FromHex("#EF0606")))
+             .HighlightStyle(new Style(foreground: Color.FromHex($"{Cores.Opcoes}")))
              .AddChoices("Sim","Não")
              .HighlightStyle(new Style(
-              foreground: Color.FromHex("#EF0606"), decoration: Decoration.Bold
+              foreground: Color.FromHex($"{Cores.Opcoes}"), decoration: Decoration.Bold
+             )));
+
+        return resposta;
+    }
+    public static string AdicionarCategoria()
+    {
+        string resposta = "";
+        resposta = AnsiConsole.Prompt(new SelectionPrompt<string>()
+             .Title("\n[#D3CCC7]─────────────────────────────────[/]\n[#D3CCC7]Selecione a meta que será vinculada à categoria[/]\n[#D3CCC7]─────────────────────────────────[/]")
+             .HighlightStyle(new Style(foreground: Color.FromHex($"{Cores.Opcoes}")))
+             .AddChoices("Sim","Não")
+             .HighlightStyle(new Style(
+              foreground: Color.FromHex($"{Cores.Opcoes}"), decoration: Decoration.Bold
              )));
 
         return resposta;

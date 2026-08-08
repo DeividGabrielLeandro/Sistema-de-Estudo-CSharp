@@ -42,14 +42,14 @@ public class Cronometro
 
        AnsiConsole.Status()
     .Spinner(Spinner.Known.TimeTravel)
-    .SpinnerStyle(Style.Parse("red"))
+    .SpinnerStyle(Style.Parse($"{Cores.TextosDestaque}"))
     .Start("Cronometrando...", ctx =>
     {
         Stopwatch sw = Stopwatch.StartNew();
 
         while (!Console.KeyAvailable)
         {
-            ctx.Status($"[#EF0606]Tempo: {sw.Elapsed:hh\\:mm\\:ss}[/]");
+            ctx.Status($"[{Cores.TextosDestaque}]Tempo: {sw.Elapsed:hh\\:mm\\:ss}[/]");
             Thread.Sleep(200);
         }
 

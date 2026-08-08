@@ -154,8 +154,8 @@ public class GerenciaMetas
             .Title("Deseja marcar a meta como concluída?")
             .AddChoices("Concluir meta", "Cancelar")
             .HighlightStyle(new Style(
-            foreground: Color.FromHex("#EF0606"), decoration: Decoration.Bold))
-            .HighlightStyle(new Style(foreground: Color.FromHex("#EF0606")))
+            foreground: Color.FromHex($"{Cores.Opcoes}"), decoration: Decoration.Bold))
+            .HighlightStyle(new Style(foreground: Color.FromHex($"{Cores.Opcoes}")))
             );
             if (resposta == "Concluir meta")
             {
@@ -188,58 +188,96 @@ public class GerenciaMetas
             }
         }
     }
+    public static void DefinirPrioridade(int id)
+    {
+        using (SqlConnection conn = new SqlConnection(Banco.Conexao))
+        {
+            string SalvarPrioridade = "";
+            conn.Open();
+            Interface.LimparTelaGeral();
+            Interface.Titulo("DEFINA A PRIORIDADE DA META");
+            string sql = "";
+
+            SalvarPrioridade = AnsiConsole.Prompt(new SelectionPrompt<string>()
+            .Title("Escolha o nível de prioridade da sua meta")
+            .AddChoices("Sem prioridade", "Prioridade baixa", "Prioridade média", "Prioridade alta", "Sair")
+            .HighlightStyle(new Style(
+            foreground: Color.FromHex($"{Cores.Opcoes}"), decoration: Decoration.Bold))
+            .HighlightStyle(new Style(foreground: Color.FromHex($"{Cores.Opcoes}")))
+            );
+
+            if (SalvarPrioridade == "Sair")
+            {
+                return;
+            }
+            sql = "UPDATE Estudo SET prioridade = @prioridade WHERE id = @id";
+
+
+            using (SqlCommand cmd = new SqlCommand(sql, conn))
+            {
+
+                cmd.Parameters.AddWithValue("@id", id);
+                cmd.Parameters.AddWithValue("@prioridade", SalvarPrioridade);
+
+                int linhasAfetadas = cmd.ExecuteNonQuery();
+
+                if (linhasAfetadas > 0)
+                {
+                    Mensagens.Sucesso_FinalizarApagarMeta("prioridade definida");
+                }
+                else
+                {
+                    Mensagens.Erro_PlanoNaoEncontrado(id);
+                }
+            }
+        }
+    }
 
 
     /// <summary>
     /// Remove uma meta do banco de dados após confirmação do usuário.
     /// </summary>
-    public static void ApagarMeta(int id)
+   public static bool ApagarMeta(int id)
+{
+    using (SqlConnection conn = new SqlConnection(Banco.Conexao))
     {
-        using (SqlConnection conn = new SqlConnection(Banco.Conexao))
+        Interface.LimparTelaGeral();
+        conn.Open();
+
+        Interface.Titulo("ATUALIZE A SUA META");
+
+        string resposta = AnsiConsole.Prompt(new SelectionPrompt<string>()
+            .Title("Deseja apagar a meta?")
+            .AddChoices("Apagar meta", "Cancelar")
+            .HighlightStyle(new Style(
+                foreground: Color.FromHex($"{Cores.Opcoes}"),
+                decoration: Decoration.Bold)));
+
+        if (resposta == "Apagar meta")
         {
-            Interface.LimparTelaGeral();
-            string resposta = "";
-            conn.Open();
-            Interface.Titulo("ATUALIZE A SUA META");
-            resposta = AnsiConsole.Prompt(new SelectionPrompt<string>()
-                        .Title("Deseja apagar a meta? ")
-                        .AddChoices("Apagar meta", "Cancelar")
-                        .HighlightStyle(new Style(
-                        foreground: Color.FromHex("#EF0606"), decoration: Decoration.Bold))
-                        .HighlightStyle(new Style(foreground: Color.FromHex("#EF0606")))
-                        );
-            
-            if (resposta == "Apagar meta")
+            string sql = "DELETE FROM Estudo WHERE id = @id";
+
+            using (SqlCommand cmd = new SqlCommand(sql, conn))
             {
+                cmd.Parameters.AddWithValue("@id", id);
 
-                string sql = "DELETE FROM Estudo WHERE id = @id";
+                int linhasAfetadas = cmd.ExecuteNonQuery();
 
-                using (SqlCommand cmd = new SqlCommand(sql, conn))
+                if (linhasAfetadas > 0)
                 {
-
-                    cmd.Parameters.AddWithValue("@id", id);
-
-                    int linhasAfetadas = cmd.ExecuteNonQuery();
-
-                    if (linhasAfetadas > 0)
-                    {
-                        Mensagens.Sucesso_FinalizarApagarMeta("apagada");
-                    }
-                    else
-                    {
-                        Mensagens.Erro_PlanoNaoEncontrado(id);
-                    }
+                    Mensagens.Sucesso_FinalizarApagarMeta("apagada");
+                    return true;
                 }
 
-            }
-            else
-            {
-                {
-                    Mensagens.Erro_Cancelada();
-                }
+                Mensagens.Erro_PlanoNaoEncontrado(id);
+                return false;
             }
         }
+
+        Mensagens.Erro_Cancelada();
+        return false;
     }
+}
 
 
 
@@ -247,7 +285,9 @@ public class GerenciaMetas
     public static Table MostrarMetas(SqlDataReader Reader, out bool MetaEncontrada)
     {
         MetaEncontrada = false;
-        var tabela = new Table();
+
+        var tabela = new Table()
+.Border(TableBorder.Rounded);
         tabela.AddColumn("Id");
         tabela.AddColumn("Titulo");
         tabela.AddColumn("Descrição");
@@ -255,13 +295,23 @@ public class GerenciaMetas
         tabela.AddColumn("Minutos estudados");
         tabela.AddColumn("Criado em");
         tabela.AddColumn("Concluído");
+        tabela.AddColumn("Prioridade");
+        tabela.AddColumn("Categoria");
+
+        tabela.Columns[0].Centered(); // Id
+        tabela.Columns[3].Centered(); // Meta
+        tabela.Columns[4].Centered(); // Minutos estudados
+        tabela.Columns[5].Centered(); // Criado em
+        tabela.Columns[6].Centered(); // Concluído
+        tabela.Columns[7].Centered(); // Prioridade
+        tabela.Columns[8].Centered(); // Categoria
 
         while (Reader.Read())
 
         {
             MetaEncontrada = true;
-            MetaEncontrada = true;
             bool concluido = Convert.ToBoolean(Reader["concluido"]);
+            string prioridade = Convert.ToString(Reader["prioridade"].ToString()!);
             string statusConcluido = concluido ? "Sim" : "Não";
 
             string descricao = Reader["descricao"].ToString()!;
@@ -270,15 +320,32 @@ public class GerenciaMetas
                 descricao = descricao.Substring(0, 27) + "...";
             }
 
+            if (prioridade == "Prioridade alta")
+                prioridade = "[red]Prioridade alta[/]";
+            else if (prioridade == "Prioridade média")
+                prioridade = "[yellow]Prioridade média[/]";
+            else if (prioridade == "Prioridade baixa")
+                prioridade = "[green]Prioridade baixa[/]";
+            else
+                prioridade = "[grey]Sem prioridade[/]";
+
+            string categoria = Categoria.NomeCategoria(
+    Convert.ToInt32(Reader["id"])
+);
+
+
             tabela.AddRow(
-                $"{Reader["id"]}",
-                $"{Reader["titulo"]}",
-                descricao,
-                $"{Reader["meta_minutos"]}",
-                $"{Reader["minutos_estudados"]}",
-                $"{Reader["data_criacao"]}",
-                statusConcluido
-            );
+    $"{Reader["id"]}",
+    $"{Reader["titulo"]}",
+    descricao,
+    $"{Reader["meta_minutos"]}",
+    $"{Reader["minutos_estudados"]}",
+    $"{Reader["data_criacao"]}",
+    statusConcluido,
+    prioridade,
+    categoria
+);
+tabela.AddEmptyRow();
 
 
         }
@@ -293,20 +360,36 @@ public class GerenciaMetas
         string metaMinutos = Reader["meta_minutos"].ToString()!;
         string minutosEstudados = Reader["minutos_estudados"].ToString()!;
         bool concluido = Convert.ToBoolean(Reader["concluido"]);
+        string prioridade = Convert.ToString(Reader["prioridade"].ToString()!);
 
         string status = concluido ? "[green]Concluída[/]" : "[yellow]Em andamento[/]";
+
+        if (prioridade == "Prioridade alta")
+            prioridade = "[red]Prioridade alta[/]";
+        else if (prioridade == "Prioridade média")
+            prioridade = "[yellow]Prioridade média[/]";
+        else if (prioridade == "Prioridade baixa")
+            prioridade = "[green]Prioridade baixa[/]";
+        else
+            prioridade = "[grey]Sem prioridade[/]";
+
+        string categoria = Categoria.NomeCategoria(
+Convert.ToInt32(Reader["id"])
+);
 
         string textoPainel =
                 $"\n[bold]Descrição:[/] {descricao}\n\n" +
                 $"[bold]Meta:[/] {metaMinutos} minutos\n" +
                 $"[bold]Estudado:[/] {minutosEstudados} minutos\n" +
-                $"[bold]Status:[/] {status}";
+                $"[bold]Status:[/] {status}\n" +
+                $"[bold]{prioridade}[/] \n" +
+                $"[bold]Categoria: {categoria}[/] \n";
 
         var painelEstudante = new Panel(textoPainel)
 
 .Border(BoxBorder.Rounded)
-.BorderColor(Color.FromHex("#d02c2c"))
-.Header($"[#EF0606]{Reader["titulo"]}[/]", Justify.Left);
+.BorderColor(Color.FromHex($"{Cores.Opcoes}"))
+.Header($"[{Cores.TextosDestaque}]{Reader["titulo"]}[/]", Justify.Left);
 
         return painelEstudante;
     }
