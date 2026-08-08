@@ -1,4 +1,5 @@
 namespace Init_db;
+
 using Spectre.Console;
 using Microsoft.Data.SqlClient;
 
@@ -155,12 +156,15 @@ public class AtualizarEstudo
             if (resposta == "Concluir meta")
             {
 
-                string sql = "UPDATE Estudo SET concluido = 1 WHERE id = @id";
+                string sql = "UPDATE Estudo SET concluido = 1, data_conclusao = @data_conclusao WHERE id = @id";
 
                 using (SqlCommand cmd = new SqlCommand(sql, conn))
                 {
+                    DateTime data_conclusao = DateTime.Now;
 
                     cmd.Parameters.AddWithValue("@id", id);
+                    cmd.Parameters.AddWithValue("@data_conclusao", data_conclusao);
+
 
                     int linhasAfetadas = cmd.ExecuteNonQuery();
 
@@ -183,7 +187,9 @@ public class AtualizarEstudo
             }
         }
     }
-      /// <summary>
+
+
+    /// <summary>
     /// Remove uma meta do banco de dados após confirmação do usuário.
     /// </summary>
     public static bool ApagarMeta(int id)

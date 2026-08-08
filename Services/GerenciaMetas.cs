@@ -244,6 +244,85 @@ new SelectionPrompt<string>()
         }
         return tabela;
     }
+    public static Table HistoricoMetasConcluídas(int id_cliente)
+    {
+
+        using (SqlConnection conn = new SqlConnection(Banco.Conexao))
+        {
+            conn.Open();
+            string sql = "SELECT * FROM Estudo WHERE id_cliente = @id AND concluido = 1";
+            using (SqlCommand cmd = new SqlCommand(sql, conn))
+            {
+                cmd.Parameters.AddWithValue("@id", id_cliente);
+                using (var Reader = cmd.ExecuteReader())
+                {
+                    Interface.LimparTelaGeral();
+                    Interface.Titulo("SUAS METAS CONCLUÍDAS");
+
+                    var tabela = new Table()
+
+            .Border(TableBorder.Rounded);
+                    tabela.AddColumn("Id");
+                    tabela.AddColumn("Titulo");
+                    tabela.AddColumn("Descrição");
+                    tabela.AddColumn("Meta em minútos");
+                    tabela.AddColumn("Minutos estudados");
+                    tabela.AddColumn("Criado em");
+                    tabela.AddColumn("Concluído em");
+
+                    tabela.Columns[0].Centered(); // Id
+                    tabela.Columns[3].Centered(); // Meta em minutos
+                    tabela.Columns[4].Centered(); // Minutos estudados
+                    tabela.Columns[5].Centered(); // Criado em
+                    tabela.Columns[6].Centered(); // Concluído em
+
+
+                    while (Reader.Read())
+
+                    {
+                        string descricao = Reader["descricao"].ToString()!;
+                        if (descricao.Length > 30)
+                        {
+                            descricao = descricao.Substring(0, 15) + "...";
+                        }
+                        string titulo = Reader["titulo"].ToString()!;
+                        if (titulo.Length > 18)
+                        {
+                            titulo = titulo.Substring(0, 15) + "...";
+                        }
+
+                        string dataCriacao = Reader["data_criacao"] != DBNull.Value
+                             ? Convert.ToDateTime(Reader["data_criacao"]).ToString("dd/MM/yyyy")
+                             : "-";
+
+                        string dataConclusao = Reader["data_conclusao"] != DBNull.Value
+                            ? Convert.ToDateTime(Reader["data_conclusao"]).ToString("dd/MM/yyyy")
+                            : "-";
+
+
+                        tabela.AddRow(
+                $"{Reader["id"]}",
+                titulo,
+                descricao,
+                $"{Reader["meta_minutos"]}",
+                $"{Reader["minutos_estudados"]}",
+                dataCriacao,
+                dataConclusao
+
+            );
+                        tabela.AddEmptyRow();
+
+
+                    }
+
+                    
+                    return tabela;
+                }
+
+            }
+        }
+    }
+
 
     public static Panel InformacoesMetas(SqlDataReader Reader)
     {

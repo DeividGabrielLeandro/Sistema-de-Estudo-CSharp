@@ -1,2 +1,1 @@
-
-SELECT *  FROM Estudo
+SELECT * FROM Estudo

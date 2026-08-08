@@ -161,7 +161,7 @@ Metas concluídas: {metasConcluidas}")
         new SelectionPrompt<string>()
         .Title("\n[#D3CCC7]─────────────────────────────────[/]\n[#D3CCC7]             OPÇÕES[/]\n[#D3CCC7]─────────────────────────────────[/]")
         .HighlightStyle(new Style(foreground: Color.FromHex($"{Cores.Opcoes}")))
-        .AddChoices("Criar nova meta", "Gerenciar metas", "Criar novas categorias", "Escolher categoria", "Iniciar um estudo livre", "Visualizar futuras atualizações", "Sair")
+        .AddChoices("Criar nova meta", "Gerenciar metas", "Criar novas categorias", "Escolher categoria", "Iniciar um estudo livre", "Ver historico de metas concluídas", "Visualizar futuras atualizações", "Sair")
         .HighlightStyle(new Style(
         foreground: Color.FromHex($"{Cores.Opcoes}"), decoration: Decoration.Bold))
          );
@@ -198,6 +198,10 @@ Metas concluídas: {metasConcluidas}")
                     Cronometro.AtualizarTempoTotalCliente(id, minutos);
                     tempoEstudo = InformacaoCliente.MostrarTempoTotalEstudo(id);
 
+                    break;
+                case "Ver historico de metas concluídas":
+                AnsiConsole.Write(GerenciaMetas.HistoricoMetasConcluídas(id));
+                Mensagens.Sair();
                     break;
                 case "Visualizar futuras atualizações":
                     Atualizacoes();
@@ -243,7 +247,7 @@ new SelectionPrompt<string>()
                     System.Console.WriteLine("Pesquise: ");
                     string pesquisa = Console.ReadLine()!;
                     ListarEstudo.PesquisarMeta(pesquisa, id);
-                    
+
                     break;
                 case "Filtros":
                     Interface.FiltrosMetas(id, "Filtros");
