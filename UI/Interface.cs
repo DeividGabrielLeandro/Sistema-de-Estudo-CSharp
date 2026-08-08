@@ -187,7 +187,7 @@ Metas concluídas: {metasConcluidas}")
                     int id_categoria = Categoria.MostrarCategorias(id);
                     if (id_categoria != -1)
                     {
-                        GerenciaCategorias.IniciarCategoria(id_categoria,id);
+                        GerenciaCategorias.IniciarCategoria(id_categoria, id);
                     }
 
                     break;
@@ -211,52 +211,6 @@ Metas concluídas: {metasConcluidas}")
     }
 
 
-    /// <summary>
-    /// Exibe o menu de personalização de uma meta de estudo.
-    /// </summary>
-    /// <param name="id_estudo">Identificador da meta selecionada.</param>
-    public static void PersonalizarMetas(int id_estudo)
-    {
-        string opcao = "";
-        bool sair = false;
-        while (!sair)
-        {
-
-            LimparTelaGeral();
-            Titulo("PERSONALIZE SUAS METAS");
-
-            opcao = AnsiConsole.Prompt(
-new SelectionPrompt<string>()
-        .Title("\n[#D3CCC7]─────────────────────────────────[/]\n[#D3CCC7]             OPÇÕES[/]\n[#D3CCC7]─────────────────────────────────[/]")
-.HighlightStyle(new Style(foreground: Color.FromHex($"{Cores.Opcoes}")))
-.AddChoices("Atualizar título", "Atualizar descrição", "Atualizar tempo de meta", "Apagar meta", "Sair")
-);
-
-            switch (opcao)
-            {
-                case "Atualizar título":
-                    GerenciaMetas.AtualizarTitulo(id_estudo);
-                    break;
-                case "Atualizar descrição":
-                    GerenciaMetas.AtualizarDescricao(id_estudo);
-                    break;
-                case "Atualizar tempo de meta":
-                    GerenciaMetas.AtualizarMeta(id_estudo);
-                    break;
-                case "Apagar meta":
-                    bool apagou = GerenciaMetas.ApagarMeta(id_estudo);
-
-                    if (apagou)
-                    {
-                        return;
-                    }
-                    break;
-                case "Sair":
-                    sair = true;
-                    break;
-            }
-        }
-    }
 
 
     /// <summary>
@@ -283,12 +237,13 @@ new SelectionPrompt<string>()
             switch (opcao)
             {
                 case "Ver todas as metas":
-                    Estudo.MostrarMetas(id, false);
+                    ListarEstudo.MostrarMetas(id, false);
                     break;
                 case "Pesquisar":
                     System.Console.WriteLine("Pesquise: ");
                     string pesquisa = Console.ReadLine()!;
-                    Estudo.PesquisarMeta(pesquisa, id);
+                    ListarEstudo.PesquisarMeta(pesquisa, id);
+                    
                     break;
                 case "Filtros":
                     Interface.FiltrosMetas(id, "Filtros");
@@ -328,13 +283,13 @@ new SelectionPrompt<string>()
                 switch (opcao)
                 {
                     case "Mostrar metas concluídas":
-                        Estudo.MostrarMetasConcluidas(id);
+                        ListarEstudo.MostrarMetasConcluidas(id);
                         break;
                     case "Mostrar metas pendentes":
-                        Estudo.MostrarMetasPendentes(id);
+                        ListarEstudo.MostrarMetasPendentes(id);
                         break;
                     case "Mostrar ultimas metas criadas":
-                        Estudo.MostrarUltimasCriadas(id);
+                        ListarEstudo.MostrarUltimasCriadas(id);
                         break;
                     case "Sair":
                         sair = true;
@@ -353,16 +308,16 @@ new SelectionPrompt<string>()
             .Title("\n[#D3CCC7]─────────────────────────────────[/]\n[#D3CCC7]             OPÇÕES[/]\n[#D3CCC7]─────────────────────────────────[/]")
     .HighlightStyle(new Style(foreground: Color.FromHex($"{Cores.Opcoes}")))
     .AddChoices(
-     "Ordenar por título","Ordenar por tempo estudado", "Sair")
+     "Ordenar por título", "Ordenar por tempo estudado", "Sair")
     );
 
                 switch (opcao)
                 {
                     case "Ordenar por título":
-                        Estudo.OrdenarPorTitulo(id);
+                        ListarEstudo.OrdenarPorTitulo(id);
                         break;
                     case "Ordenar por tempo estudado":
-                        Estudo.OrdenarPorTempoEstudado(id);
+                        ListarEstudo.OrdenarPorTempoEstudado(id);
                         break;
                     case "Sair":
                         sair = true;

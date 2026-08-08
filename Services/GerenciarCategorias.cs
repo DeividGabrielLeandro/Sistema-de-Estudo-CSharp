@@ -53,12 +53,12 @@ FROM Categoria WHERE id = @id";
                                     int idEscolhido_adicionar = estudo.EscolherEstudo(id_cliente, id_categoria: id_categoria, filtro: Estudo.TipoFiltroEstudo.Todas);
                                     if (idEscolhido_adicionar != -1)
                                     {
-                                        Estudo.IniciarEstudo(id_cliente, idEscolhido_adicionar);
+                                        GerenciaMetas.IniciarEstudo(id_cliente, idEscolhido_adicionar);
                                     }
                                     break;
 
                                 case "Adicionar meta à categoria":
-                                    Estudo.MostrarMetas(id_cliente, true, id_categoria);
+                                    ListarEstudo.MostrarMetas(id_cliente, true, id_categoria);
                                     break;
 
                                 case "Remover meta":

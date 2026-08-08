@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.Metadata.Ecma335;
 using Microsoft.Data.SqlClient;
 using Spectre.Console;
 
@@ -12,6 +13,7 @@ namespace Init_db;
 /// </summary>
 public class Estudo
 {
+
     public enum TipoFiltroEstudo
     {
         Todas,
@@ -22,6 +24,7 @@ public class Estudo
         PorTempoEstudado,
         Pesquisa
     }
+
 
     /// <summary>
     /// Cadastra uma nova meta de estudo vinculada ao usuário informado.
@@ -65,360 +68,52 @@ public class Estudo
             }
         }
     }
-
-    /// <summary>
-    /// Pesquisa metas pelo título ou descrição.
-    /// </summary>
-    public static void PesquisarMeta(string pesquisa, int id_cliente)
+    public static void DefinirPrioridade(int id)
     {
-        bool MetaEncontrada = false;
-        string sql = @"SELECT * FROM Estudo WHERE id_cliente = @id_cliente AND (titulo LIKE @TermoBusca OR descricao LIKE @TermoBusca)";
-
         using (SqlConnection conn = new SqlConnection(Banco.Conexao))
         {
-            SqlCommand cmd = new SqlCommand(sql, conn);
-            cmd.Parameters.AddWithValue("@TermoBusca", "%" + pesquisa + "%");
-            cmd.Parameters.AddWithValue("@id_cliente", id_cliente);
+            string SalvarPrioridade = "";
             conn.Open();
-
-            using SqlDataReader Reader = cmd.ExecuteReader();
             Interface.LimparTelaGeral();
-            Interface.Titulo("PESQUISE A SUA META CRIADA");
+            Interface.Titulo("DEFINA A PRIORIDADE DA META");
+            string sql = "";
 
-            try
+            SalvarPrioridade = AnsiConsole.Prompt(new SelectionPrompt<string>()
+            .Title("Escolha o nível de prioridade da sua meta")
+            .AddChoices("Sem prioridade", "Prioridade baixa", "Prioridade média", "Prioridade alta", "Sair")
+            .HighlightStyle(new Style(
+            foreground: Color.FromHex($"{Cores.Opcoes}"), decoration: Decoration.Bold))
+            .HighlightStyle(new Style(foreground: Color.FromHex($"{Cores.Opcoes}")))
+            );
+
+            if (SalvarPrioridade == "Sair")
             {
-                var tabela = GerenciaMetas.MostrarMetas(Reader, out MetaEncontrada);
-                AnsiConsole.Write(tabela);
+                return;
+            }
+            sql = "UPDATE Estudo SET prioridade = @prioridade WHERE id = @id";
 
-                if (MetaEncontrada)
+
+            using (SqlCommand cmd = new SqlCommand(sql, conn))
+            {
+
+                cmd.Parameters.AddWithValue("@id", id);
+                cmd.Parameters.AddWithValue("@prioridade", SalvarPrioridade);
+
+                int linhasAfetadas = cmd.ExecuteNonQuery();
+
+                if (linhasAfetadas > 0)
                 {
-                    if (Mensagens.IniciarEstudo() == "Sim")
-                    {
-                        Estudo estudo = new Estudo();
-                        estudo.EscolherEstudo(id_cliente, filtro: TipoFiltroEstudo.Pesquisa, termoBusca: pesquisa);
-                    }
-                    else
-                    {
-                        Mensagens.Sair();
-                    }
+                    Mensagens.Sucesso_FinalizarApagarMeta("prioridade definida");
                 }
                 else
                 {
-                    Mensagens.Erro_SemInformacoes();
-                }
-            }
-            catch (Exception ex)
-            {
-                AnsiConsole.WriteException(ex);
-                Console.ReadKey();
-            }
-        }
-    }
-
-    /// <summary>
-    /// Exibe todas as metas cadastradas pelo usuário.
-    /// </summary>
-    public static void MostrarMetas(int id, bool adicionarCategoria, int? id_categoria = null)
-    {
-        int idCategoria = id_categoria ?? 0;
-        bool MetaEncontrada = true;
-        Estudo estudo1 = new Estudo();
-
-        using (SqlConnection conn = new SqlConnection(Banco.Conexao))
-        {
-            conn.Open();
-            string sql = "SELECT * FROM Estudo WHERE id_cliente = @id";
-            using (SqlCommand cmd = new SqlCommand(sql, conn))
-            {
-                cmd.Parameters.AddWithValue("@id", id);
-                using (var Reader = cmd.ExecuteReader())
-                {
-                    Interface.LimparTelaGeral();
-                    Interface.Titulo("SEUS PLANOS DE ESTUDO");
-
-                    try
-                    {
-                        var tabela = GerenciaMetas.MostrarMetas(Reader, out MetaEncontrada);
-                        AnsiConsole.Write(tabela);
-
-                        if (MetaEncontrada)
-                        {
-                            if (adicionarCategoria)
-                            {
-                                Estudo estudo = new Estudo();
-                                int idEscolhido = estudo.EscolherEstudo(id, filtro: TipoFiltroEstudo.Todas);
-                                Categoria.VincularCategoria(idCategoria, idEscolhido);
-
-                            }
-                            else if (!adicionarCategoria)
-                            {
-                                if (Mensagens.IniciarEstudo() == "Sim")
-                                {
-                                    Estudo estudo = new Estudo();
-                                    int idEscolhido = estudo.EscolherEstudo(id, filtro: TipoFiltroEstudo.Todas);
-                                    Estudo.IniciarEstudo(id, idEscolhido);
-                                }
-                                else
-                                {
-                                    Mensagens.Sair();
-                                }
-                            }
-                        }
-                        else
-                        {
-                            Mensagens.Erro_SemInformacoes();
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        AnsiConsole.WriteException(ex);
-                        Console.ReadKey();
-                    }
+                    Mensagens.Erro_PlanoNaoEncontrado(id);
                 }
             }
         }
     }
 
-    /// <summary>
-    /// Exibe apenas as metas pendentes.
-    /// </summary>
-    public static void MostrarMetasPendentes(int id)
-    {
-        bool MetaEncontrada = true;
-        using (SqlConnection conn = new SqlConnection(Banco.Conexao))
-        {
-            conn.Open();
-            string sql = "SELECT * FROM Estudo WHERE id_cliente = @id AND (concluido = 0 OR concluido IS NULL)";
-            using (SqlCommand cmd = new SqlCommand(sql, conn))
-            {
-                cmd.Parameters.AddWithValue("@id", id);
-                using (var Reader = cmd.ExecuteReader())
-                {
-                    Interface.LimparTelaGeral();
-                    Interface.Titulo("SUAS METAS PENDENTES");
 
-                    try
-                    {
-                        var tabela = GerenciaMetas.MostrarMetas(Reader, out MetaEncontrada);
-                        AnsiConsole.Write(tabela);
-
-                        if (MetaEncontrada)
-                        {
-                            if (Mensagens.IniciarEstudo() == "Sim")
-                            {
-                                Estudo estudo = new Estudo();
-                                estudo.EscolherEstudo(id, filtro: TipoFiltroEstudo.Pendentes);
-                            }
-                            else
-                            {
-                                Mensagens.Sair();
-                            }
-                        }
-                        else
-                        {
-                            Mensagens.Erro_SemInformacoes();
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        AnsiConsole.WriteException(ex);
-                        Console.ReadKey();
-                    }
-                }
-            }
-        }
-    }
-
-    /// <summary>
-    /// Exibe apenas as metas concluídas.
-    /// </summary>
-    public static void MostrarMetasConcluidas(int id)
-    {
-        bool MetaEncontrada = true;
-        using (SqlConnection conn = new SqlConnection(Banco.Conexao))
-        {
-            conn.Open();
-            string sql = "SELECT * FROM Estudo WHERE id_cliente = @id AND concluido = 1";
-            using (SqlCommand cmd = new SqlCommand(sql, conn))
-            {
-                cmd.Parameters.AddWithValue("@id", id);
-                using (var Reader = cmd.ExecuteReader())
-                {
-                    Interface.LimparTelaGeral();
-                    Interface.Titulo("SUAS METAS CONCLUÍDAS");
-
-                    try
-                    {
-                        var tabela = GerenciaMetas.MostrarMetas(Reader, out MetaEncontrada);
-                        AnsiConsole.Write(tabela);
-
-                        if (MetaEncontrada)
-                        {
-                            if (Mensagens.IniciarEstudo() == "Sim")
-                            {
-                                Estudo estudo = new Estudo();
-                                estudo.EscolherEstudo(id, filtro: TipoFiltroEstudo.Concluidas);
-                            }
-                            else
-                            {
-                                Mensagens.Sair();
-                            }
-                        }
-                        else
-                        {
-                            Mensagens.Erro_SemInformacoes();
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        AnsiConsole.WriteException(ex);
-                        Console.ReadKey();
-                    }
-                }
-            }
-        }
-    }
-
-    public static void MostrarUltimasCriadas(int id)
-    {
-        bool MetaEncontrada = true;
-        using (SqlConnection conn = new SqlConnection(Banco.Conexao))
-        {
-            conn.Open();
-            string sql = "SELECT * FROM Estudo WHERE id_cliente = @id ORDER BY id DESC";
-            using (SqlCommand cmd = new SqlCommand(sql, conn))
-            {
-                cmd.Parameters.AddWithValue("@id", id);
-                using (var Reader = cmd.ExecuteReader())
-                {
-                    Interface.LimparTelaGeral();
-                    Interface.Titulo("SUAS ÚLTIMAS METAS CRIADAS");
-
-                    try
-                    {
-                        var tabela = GerenciaMetas.MostrarMetas(Reader, out MetaEncontrada);
-                        AnsiConsole.Write(tabela);
-
-                        if (MetaEncontrada)
-                        {
-                            if (Mensagens.IniciarEstudo() == "Sim")
-                            {
-                                Estudo estudo = new Estudo();
-                                estudo.EscolherEstudo(id, filtro: TipoFiltroEstudo.UltimasCriadas);
-                            }
-                            else
-                            {
-                                Mensagens.Sair();
-                            }
-                        }
-                        else
-                        {
-                            Mensagens.Erro_SemInformacoes();
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        AnsiConsole.WriteException(ex);
-                        Console.ReadKey();
-                    }
-                }
-            }
-        }
-    }
-
-    public static void OrdenarPorTempoEstudado(int id)
-    {
-        bool MetaEncontrada = true;
-        using (SqlConnection conn = new SqlConnection(Banco.Conexao))
-        {
-            conn.Open();
-            string sql = "SELECT * FROM Estudo WHERE id_cliente = @id ORDER BY minutos_estudados DESC";
-            using (SqlCommand cmd = new SqlCommand(sql, conn))
-            {
-                cmd.Parameters.AddWithValue("@id", id);
-                using (var Reader = cmd.ExecuteReader())
-                {
-                    Interface.LimparTelaGeral();
-                    Interface.Titulo("SUAS METAS POR TEMPO ESTUDADO");
-
-                    try
-                    {
-                        var tabela = GerenciaMetas.MostrarMetas(Reader, out MetaEncontrada);
-                        AnsiConsole.Write(tabela);
-
-                        if (MetaEncontrada)
-                        {
-                            if (Mensagens.IniciarEstudo() == "Sim")
-                            {
-                                Estudo estudo = new Estudo();
-                                estudo.EscolherEstudo(id, filtro: TipoFiltroEstudo.PorTempoEstudado);
-                            }
-                            else
-                            {
-                                Mensagens.Sair();
-                            }
-                        }
-                        else
-                        {
-                            Mensagens.Erro_SemInformacoes();
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        AnsiConsole.WriteException(ex);
-                        Console.ReadKey();
-                    }
-                }
-            }
-        }
-    }
-
-    public static void OrdenarPorTitulo(int id)
-    {
-        bool MetaEncontrada = true;
-        using (SqlConnection conn = new SqlConnection(Banco.Conexao))
-        {
-            conn.Open();
-            string sql = "SELECT * FROM Estudo WHERE id_cliente = @id ORDER BY titulo ASC";
-            using (SqlCommand cmd = new SqlCommand(sql, conn))
-            {
-                cmd.Parameters.AddWithValue("@id", id);
-                using (var Reader = cmd.ExecuteReader())
-                {
-                    Interface.LimparTelaGeral();
-                    Interface.Titulo("SUAS METAS ORDENADAS POR TÍTULO");
-
-                    try
-                    {
-                        var tabela = GerenciaMetas.MostrarMetas(Reader, out MetaEncontrada);
-                        AnsiConsole.Write(tabela);
-
-                        if (MetaEncontrada)
-                        {
-                            if (Mensagens.IniciarEstudo() == "Sim")
-                            {
-                                Estudo estudo = new Estudo();
-                                estudo.EscolherEstudo(id, filtro: TipoFiltroEstudo.PorTitulo);
-                            }
-                            else
-                            {
-                                Mensagens.Sair();
-                            }
-                        }
-                        else
-                        {
-                            Mensagens.Erro_SemInformacoes();
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        AnsiConsole.WriteException(ex);
-                        Console.ReadKey();
-                    }
-                }
-            }
-        }
-    }
 
     /// <summary>
     /// Permite ao usuário selecionar uma meta e iniciar uma sessão de estudo.
@@ -528,78 +223,95 @@ public class Estudo
         }
     }
 
-    /// <summary>
-    /// Exibe os detalhes da meta selecionada e permite iniciar,
-    /// editar ou concluir a sessão de estudo.
-    /// </summary>
-    public static void IniciarEstudo(int id_cliente, int id_estudo)
+
+    public static DateTime? Escolher(int id_estudo)
     {
-        bool Sair = false;
-        while (!Sair)
+        Interface.LimparTelaGeral();
+        Interface.Titulo("DEFINA UMA META LIMITE");
+
+        string opcao = AnsiConsole.Prompt(
+                                       new SelectionPrompt<string>()
+                                       .Title("\n[#D3CCC7]─────────────────────────────────[/]\n[#D3CCC7]             OPÇÕES[/]\n[#D3CCC7]─────────────────────────────────[/]")
+                                       .HighlightStyle(new Style(
+                                           foreground: Color.FromHex($"{Cores.Opcoes}"),
+                                           decoration: Decoration.Bold
+                                       ))
+                                       .AddChoices("Hoje", "Amanhã", "Daqui a 7 dias (1 semana)", "Daqui a 15 dias", "Daqui a 30 dias (1 mês)", "Digitar data específica (dd/mm/yyyy)", "Sair"));
+        return opcao switch
         {
-            using (SqlConnection conn = new SqlConnection(Banco.Conexao))
+            "Hoje" => DateTime.Today,
+            "Amanhã" => DateTime.Today.AddDays(1),
+            "Daqui a 7 dias (1 semana)" => DateTime.Today.AddDays(7),
+            "Daqui a 15 dias" => DateTime.Today.AddDays(15),
+            "Daqui a 30 dias (1 mês)" => DateTime.Today.AddDays(30),
+            "Digitar data específica (dd/mm/yyyy)" => ObterDataManual(),
+            _ => null
+        };
+    }
+    private static DateTime? ObterDataManual()
+    {
+        Interface.LimparTelaGeral();
+        Interface.Titulo("DIGITE UMA DATA ESPECÍFICA");
+
+        var dataString = AnsiConsole.Prompt(
+            new TextPrompt<string>("[#D3CCC7]Digite a data limite ([yellow]dd/mm/yyyy[/]):[/] ")
+                .Validate(input =>
+                {
+
+                    if (!DateTime.TryParseExact(input, "dd/MM/yyyy", null, System.Globalization.DateTimeStyles.None, out DateTime dataDigitada))
+                    {
+                        return ValidationResult.Error("[red]Formato inválido! Use o padrão dd/mm/yyyy (ex: 15/09/2026)[/]");
+                    }
+
+
+                    if (dataDigitada.Date < DateTime.Today)
+                    {
+                        return ValidationResult.Error("[red]A data limite não pode ser anterior a hoje![/]");
+                    }
+
+                    return ValidationResult.Success();
+                })
+        );
+        if (dataString == "0")
+            return null;
+
+        return DateTime.ParseExact(dataString, "dd/MM/yyyy", null);
+    }
+    public static void AtualizarData(int id_estudo, DateTime? data)
+    {
+
+        using (SqlConnection conn = new SqlConnection(Banco.Conexao))
+        {
+            conn.Open();
+            string sql = "UPDATE Estudo SET data_limite = @data_limite WHERE id = @id";
+            using (SqlCommand cmd = new SqlCommand(sql, conn))
             {
-                conn.Open();
-                string sql = "SELECT * FROM Estudo WHERE id = @id AND id_cliente = @id_cliente";
-                using (SqlCommand cmd = new SqlCommand(sql, conn))
                 {
                     cmd.Parameters.AddWithValue("@id", id_estudo);
-                    cmd.Parameters.AddWithValue("@id_cliente", id_cliente);
+                    cmd.Parameters.AddWithValue(
+                        "@data_limite",
+                        data.HasValue ? (object)data : DBNull.Value
+                    );
 
-                    using (var Reader = cmd.ExecuteReader())
+                    int linhasAfetadas = cmd.ExecuteNonQuery();
+
+                    Interface.LimparTelaGeral();
+                    if (linhasAfetadas > 0)
                     {
-                        string opcao = "";
-                        Interface.LimparTelaGeral();
-                        Interface.Titulo("SEU PLANO");
-
-                        AnsiConsole.Write($"\n{Textos.MensagemMotivacional_Seneca}\n\n");
-
-                        if (Reader.Read())
-                        {
-                            AnsiConsole.Write(GerenciaMetas.InformacoesMetas(Reader));
-
-                            opcao = AnsiConsole.Prompt(
-                                new SelectionPrompt<string>()
-                                .Title("\n[#D3CCC7]─────────────────────────────────[/]\n[#D3CCC7]             OPÇÕES[/]\n[#D3CCC7]─────────────────────────────────[/]")
-                                .HighlightStyle(new Style(
-                                    foreground: Color.FromHex($"{Cores.Opcoes}"),
-                                    decoration: Decoration.Bold
-                                ))
-                                .AddChoices("Começar a contar o tempo", "Abrir as opções", "Marcar como finalizada", "Definir prioridade", "Vincular à uma categoria criada", "Sair"));
-
-                            switch (opcao)
-                            {
-                                case "Começar a contar o tempo":
-                                    double minutos = Cronometro.ContarTempo();
-                                    Cronometro.SalvarTempo(id_estudo, minutos);
-                                    Cronometro.AtualizarTempoTotalCliente(id_cliente, minutos);
-                                    break;
-                                case "Abrir as opções":
-                                    Interface.PersonalizarMetas(id_estudo);
-                                    break;
-                                case "Marcar como finalizada":
-                                    GerenciaMetas.MarcarFinalizada(id_estudo);
-                                    break;
-                                case "Definir prioridade":
-                                    GerenciaMetas.DefinirPrioridade(id_estudo);
-                                    break;
-                                case "Vincular à uma categoria criada":
-                                    int id = Categoria.MostrarCategorias(id_cliente);
-                                    Categoria.VincularCategoria(id, id_estudo);
-                                    break;
-                                case "Sair":
-                                    Sair = true;
-                                    break;
-                            }
-                        }
-                        else
-                        {
-                            Mensagens.Erro_PlanoNaoEncontrado(id_estudo);
-                            Sair = true;
-                        }
+                        AnsiConsole.MarkupLine("[green]Data limite atualizada com sucesso![/]");
                     }
+                    else
+                    {
+                        AnsiConsole.MarkupLine("[red]Não foi possível atualizar a data limite.[/]");
+                    }
+
+                    AnsiConsole.MarkupLine("\n[grey]Pressione qualquer tecla para continuar...[/]");
+                    Console.ReadKey(true);
+
                 }
             }
         }
+
     }
 }
+
