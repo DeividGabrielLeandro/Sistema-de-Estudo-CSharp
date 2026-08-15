@@ -10,66 +10,102 @@ using System.Threading;
 /// Gerencia o cronômetro de estudo e o registro do tempo
 /// dedicado às metas do usuário.
 /// </summary>
+
+public class ResultadoSessao
+{
+    public DateTime DataInicio { get; set; }
+    public DateTime DataFim { get; set; }
+    public TimeSpan TempoLiquido { get; set; }
+    public TimeSpan TempoBruto { get; set; }
+
+    // Propriedades calculadas utilitárias (facilitam o uso)
+    public double MinutosLiquidos => TempoLiquido.TotalMinutes;
+    public double MinutosBrutos => TempoBruto.TotalMinutes;
+    public TimeSpan TempoPausa => TempoBruto - TempoLiquido;
+}
+
 public class Cronometro
 {
-
     /// <summary>
-    /// Inicia o cronômetro e retorna o tempo total de estudo em minutos.
-    /// A contagem é encerrada quando o usuário pressiona uma tecla.
+    /// Gerencia a sessão de estudo calculando o tempo líquido (foco) 
+    /// e o tempo bruto (total decorrido incluindo pausas).
     /// </summary>
-    /// <returns>Total de minutos estudados.</returns>
-    public static double ContarTempo()
+    /// <returns>Tempo líquido estudado em minutos.</returns>
+    public static ResultadoSessao ContarTempo()
     {
+        Stopwatch tempoBruto = Stopwatch.StartNew();
+        Stopwatch tempoLiquido = new Stopwatch();
+        DateTime dataInicio = DateTime.Now;
         Interface.LimparTelaGeral();
         Interface.Titulo("CRONOMETRO");
+        bool emExecucao = true;
 
-
-        System.Console.WriteLine(Textos.MensagemMotivacional_NelsonMandela);
-
-
-        System.Console.WriteLine("\n──────────────────────────────────────────────────────────────────\n");
-
-
-        Console.WriteLine("Pressione qualquer tecla para parar o contador...");
-
-        Stopwatch cronometro = new Stopwatch();
-        cronometro.Start();
-
-        while (Console.KeyAvailable)
+        while (emExecucao)
         {
-            Console.ReadKey(true);
+            tempoLiquido.Start();
+            Console.Clear();
+            Interface.LimparTelaGeral();
+            Interface.Titulo("CRONOMETRO");
+            AnsiConsole.MarkupLine($"[{Cores.TextosDestaque}]Pressione QUALQUER TECLA para pausar...[/]\n");
+
+            AnsiConsole.Status()
+                .Spinner(Spinner.Known.TimeTravel)
+                .SpinnerStyle(Style.Parse($"{Cores.TextosDestaque}"))
+                .Start("Estudando...", ctx =>
+                {
+                    while (!Console.KeyAvailable)
+                    {
+                        ctx.Status(
+                            $"[{Cores.TextosDestaque}]Tempo de foco: {tempoLiquido.Elapsed:hh\\:mm\\:ss}[/] | " +
+                            $"[grey]Tempo total): {tempoBruto.Elapsed:hh\\:mm\\:ss}[/]"
+                        );
+                        Thread.Sleep(200);
+                    }
+
+                    Console.ReadKey(true);
+                });
+
+            tempoLiquido.Stop();
+            Console.Clear();
+            Interface.LimparTelaGeral();
+            Interface.Titulo("CRONOMETRO");
+            AnsiConsole.MarkupLine($"[{Cores.TextosDestaque}]CRONÔMETRO PAUSADO[/]");
+            AnsiConsole.MarkupLine($"Foco acumulado: [bold]{tempoLiquido.Elapsed:hh\\:mm\\:ss}[/]\n");
+
+            string opcao = AnsiConsole.Prompt(
+                new SelectionPrompt<string>()
+                    .Title("[#D3CCC7]O que deseja fazer agora?[/]")
+                    .HighlightStyle(new Style(
+                        foreground: Color.FromHex($"{Cores.Opcoes}"),
+                        decoration: Decoration.Bold
+                    ))
+                    .AddChoices("Continuar estudando", "Finalizar sessão"));
+
+            if (opcao == "Finalizar sessão")
+            {
+                emExecucao = false;
+            }
         }
 
-       AnsiConsole.Status()
-    .Spinner(Spinner.Known.TimeTravel)
-    .SpinnerStyle(Style.Parse($"{Cores.TextosDestaque}"))
-    .Start("Cronometrando...", ctx =>
-    {
-        Stopwatch sw = Stopwatch.StartNew();
+        tempoBruto.Stop();
+        DateTime dataFim = DateTime.Now;
+        double minutosLiquidos = tempoLiquido.Elapsed.TotalMinutes;
+        double minutosBrutos = tempoBruto.Elapsed.TotalMinutes;
 
-        while (!Console.KeyAvailable)
+        AnsiConsole.MarkupLine($"[green]Sessão Finalizada com Sucesso![/]\n");
+        AnsiConsole.MarkupLine($"[bold]Tempo Líquido (Foco):[/] {tempoLiquido.Elapsed:hh\\:mm\\:ss} ({minutosLiquidos:F1} min)");
+        AnsiConsole.MarkupLine($"[bold]Tempo Bruto (Total):[/] {tempoBruto.Elapsed:hh\\:mm\\:ss} ({minutosBrutos:F1} min)");
+        AnsiConsole.MarkupLine($"[bold]Tempo de Pausa:[/] {tempoBruto.Elapsed - tempoLiquido.Elapsed:hh\\:mm\\:ss}\n");
+        Console.ReadKey();
+
+        return new ResultadoSessao
         {
-            ctx.Status($"[{Cores.TextosDestaque}]Tempo: {sw.Elapsed:hh\\:mm\\:ss}[/]");
-            Thread.Sleep(200);
-        }
-
-        Console.ReadKey(true);
-    });
-        cronometro.Stop();
-
-        while (Console.KeyAvailable)
-        {
-            Console.ReadKey(true);
-        }
-
-        double minutos = cronometro.Elapsed.TotalMinutes;
-        System.Console.WriteLine(minutos);
-
-        Console.WriteLine(";\nContador parado.");
-        return minutos;
+            DataInicio = dataInicio,
+            DataFim = dataFim,
+            TempoLiquido = tempoLiquido.Elapsed,
+            TempoBruto = tempoBruto.Elapsed
+        };
     }
-
-
 
     /// <summary>
     /// Salva o tempo estudado na meta informada.
@@ -115,6 +151,47 @@ public class Cronometro
 
                 cmd.Parameters.AddWithValue("@minutos", minutos);
                 cmd.Parameters.AddWithValue("@id", id_cliente);
+
+            }
+            System.Console.WriteLine("Tempo salvo");
+
+        }
+    }
+    public static void SalvarTempoSessao(int id_cliente, int id_estudo, int id_sessao, ResultadoSessao sessao)
+    {
+
+        using (SqlConnection conn = new SqlConnection(Banco.Conexao))
+        {
+            conn.Open();
+            string sql = @"
+            UPDATE sessao_estudo
+            SET 
+                id_cliente = @id_cliente,
+                id_meta = @id_meta,
+                data_inicio = @data_inicio,
+                data_fim = @data_fim,
+                duracao_minutos = @duracao_minutos,
+                tempo_estudado_minutos = @tempo_estudado_minutos,
+                status = @status,
+                descricao = @descricao
+            WHERE id = @id";
+
+            var descricao = AnsiConsole.Ask<string>("Descreva o que foi estudado e realizado nessa sessão de estudo: ");
+            using (SqlCommand cmd = new SqlCommand(sql, conn))
+            {
+
+                cmd.Parameters.AddWithValue("data_inicio", sessao.DataInicio);
+                cmd.Parameters.AddWithValue("data_fim", sessao.DataFim);
+                cmd.Parameters.AddWithValue("descricao", descricao);
+
+                cmd.Parameters.AddWithValue("@duracao_minutos", Convert.ToInt32(sessao.MinutosBrutos));
+                cmd.Parameters.AddWithValue("@tempo_estudado_minutos", Convert.ToInt32(sessao.MinutosLiquidos));
+
+                cmd.Parameters.AddWithValue("@status", "CONCLUIDO");
+
+                cmd.Parameters.AddWithValue("@id_cliente", id_cliente);
+                cmd.Parameters.AddWithValue("@id_meta", id_estudo);
+                cmd.Parameters.AddWithValue("@id", id_sessao);
                 cmd.ExecuteNonQuery();
 
             }
@@ -122,4 +199,6 @@ public class Cronometro
 
         }
     }
+
+
 }

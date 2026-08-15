@@ -15,6 +15,7 @@ public class GerenciaMetas
     /// </summary>
     public static void IniciarEstudo(int id_cliente, int id_estudo)
     {
+        Sessao_Estudo sessao_Estudo = new Sessao_Estudo();
         bool Sair = false;
         while (!Sair)
         {
@@ -46,16 +47,30 @@ public class GerenciaMetas
                                     foreground: Color.FromHex($"{Cores.Opcoes}"),
                                     decoration: Decoration.Bold
                                 ))
-                                .AddChoices("Começar a contar o tempo", "Abrir as opções", "Marcar como finalizada", "Definir prioridade", "Definir data limite", "Vincular à uma categoria criada", "Sair"));
+                                .AddChoices("Começar a contar o tempo", "Abrir sessão de estudo", "Escolher sessão de estudo", "Ver histórico de sessões de estudo", "Abrir as opções", "Marcar como finalizada", "Definir prioridade", "Definir data limite", "Vincular à uma categoria criada", "Sair"));
 
                             switch (opcao)
                             {
                                 case "Começar a contar o tempo":
-                                    double minutos = Cronometro.ContarTempo();
-                                    Cronometro.SalvarTempo(id_estudo, minutos);
-                                    Cronometro.AtualizarTempoTotalCliente(id_cliente, minutos);
+                                    ResultadoSessao sessao = Cronometro.ContarTempo();
+                                    Cronometro.SalvarTempo(id_estudo, sessao.MinutosLiquidos);
+                                    Cronometro.AtualizarTempoTotalCliente(id_cliente, sessao.MinutosLiquidos);
                                     break;
 
+                                case "Abrir sessão de estudo":
+                                    Sessao_Estudo.CriarSessao(id_cliente, id_estudo);
+                                    break;
+                                case "Escolher sessão de estudo":
+                                    int id_gerado = Sessao_Estudo.MostrarSessao(id_estudo);
+                                    if (id_gerado != -1)
+                                    {
+                                        GerenciaSessao_Estudo.Interface_Sessao(id_estudo, id_gerado, id_cliente);
+                                    }
+                                    break;
+                                case "Ver histórico de sessões de estudo":
+                                    AnsiConsole.Write(GerenciaSessao_Estudo.HistoricoSessoes(id_estudo));
+                                    Mensagens.Sair();
+                                    break;
                                 case "Abrir as opções":
                                     PersonalizarMetas(id_estudo);
                                     break;
@@ -315,7 +330,7 @@ new SelectionPrompt<string>()
 
                     }
 
-                    
+
                     return tabela;
                 }
 

@@ -155,4 +155,23 @@ visualizar todas as metas vinculadas a ela e gerenciar seu progresso de forma
 prática e organizada.
 
 ";
+public static readonly string SobreSessao = @"
+Como funciona a sua sessão:
+
+1- Marcar o tempo
+O cronômetro vai contar o seu tempo real de foco e o tempo total da sessão com as pausas.
+
+2- Finalizou, tá salvo!
+Atenção: assim que você encerrar o cronômetro, a sessão é travada e não será possível alterar nada depois.
+
+3- O que você estudou?
+Para fechar a sessão, o sistema vai pedir um resumo rápido do que você fez.
+
+Exemplos do que escrever:
+
+Assisti à aulas sobre redação e escrevi uma com o tema 'tema da redação'
+
+Resolvi questões de matemática (5 erradas e 6 certas)
+
+";
 }

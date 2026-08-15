@@ -192,16 +192,13 @@ Metas concluídas: {metasConcluidas}")
 
                     break;
                 case "Iniciar um estudo livre":
-                    double minutos = Cronometro.ContarTempo();
-
-                    // Atualiza o total de minutos exibido ao usuário após a sessão de estudo.
-                    Cronometro.AtualizarTempoTotalCliente(id, minutos);
-                    tempoEstudo = InformacaoCliente.MostrarTempoTotalEstudo(id);
-
+                    ResultadoSessao sessao = Cronometro.ContarTempo();
+                    Cronometro.SalvarTempo(id, sessao.MinutosLiquidos);
+                    Cronometro.AtualizarTempoTotalCliente(id, sessao.MinutosLiquidos);
                     break;
                 case "Ver historico de metas concluídas":
-                AnsiConsole.Write(GerenciaMetas.HistoricoMetasConcluídas(id));
-                Mensagens.Sair();
+                    AnsiConsole.Write(GerenciaMetas.HistoricoMetasConcluídas(id));
+                    Mensagens.Sair();
                     break;
                 case "Visualizar futuras atualizações":
                     Atualizacoes();
