@@ -132,6 +132,9 @@ public class Interface
         double metasPendentes = InformacaoCliente.ContarMetasPendentes(id);
         double metasConcluidas = InformacaoCliente.ContarMetasConcluidas(id);
         double totalMetas = InformacaoCliente.ContarTodasMetas(id);
+        double TempoFocoHoje = RegistroFoco.TempoFocoHoje(id);
+        double TempoFocoSemana = RegistroFoco.TempoFocoSemana(id);
+        double TempoFocoMes = RegistroFoco.TempoFocoMes(id);
         bool sair = false;
         string opcao = "";
         string Nome = informacaoCliente.ObterNomeCliente(id);
@@ -146,7 +149,10 @@ public class Interface
             var painelEstudante = new Panel(@$"Seus minutos estudados: {tempoEstudo}
 Metas criadas: {totalMetas}
 Metas pendentes: {metasPendentes}
-Metas concluídas: {metasConcluidas}")
+Metas concluídas: {metasConcluidas}
+Tempo de foco hoje: {TempoFocoHoje}
+Tempo de foco esta semana: {TempoFocoSemana}
+Tempo de foco este mês: {TempoFocoMes}")
 .Border(BoxBorder.Rounded)
 .BorderColor(Color.FromHex($"{Cores.Opcoes}"))
 .Header($"[{Cores.TextosDestaque}]Suas informações[/]", Justify.Center);
@@ -193,7 +199,7 @@ Metas concluídas: {metasConcluidas}")
                     break;
                 case "Iniciar um estudo livre":
                     ResultadoSessao sessao = Cronometro.ContarTempo();
-                    Cronometro.SalvarTempo(id, sessao.MinutosLiquidos);
+                    RegistroFoco.SalvarFoco(id, sessao.MinutosLiquidos, "ESTUDO_LIVRE");
                     Cronometro.AtualizarTempoTotalCliente(id, sessao.MinutosLiquidos);
                     break;
                 case "Ver historico de metas concluídas":

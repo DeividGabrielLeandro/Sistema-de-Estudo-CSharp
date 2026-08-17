@@ -8,77 +8,47 @@ public class Textos
 {
 public static readonly string Atualizacoes = @"# Próximas Atualizações
 
-O ATHENA continuará recebendo novas funcionalidades com foco em organização, produtividade, acompanhamento do desempenho e segurança. Abaixo estão alguns dos recursos planejados para as próximas versões do sistema.
+O ATHENA continuará evoluindo com foco em organização, produtividade e acompanhamento do desempenho nos estudos. O planejamento abaixo representa os próximos passos do projeto e poderá ser ajustado conforme o desenvolvimento avançar.
 
-## ATHENA 1.1 — Organização e Cronômetro
+## ATHENA 1.1 — Finalização da Versão Terminal
 
-* Adicionar categorias para metas de estudo.
-* Implementar datas limite para conclusão das metas.
-* Permitir arquivamento de metas.
-* Criar histórico de metas arquivadas.
-* Criar histórico de metas concluídas.
-* Permitir reabertura de metas arquivadas.
-* Adicionar opção para pausar e continuar o cronômetro.
-* Registrar pausas durante as sessões de estudo.
-* Criar histórico de sessões realizadas.
-* Exibir a duração da última sessão de estudo.
-* Exibir a maior sessão de estudo registrada.
-
-## ATHENA 1.2 — Estatísticas
-
+* Finalizar as estatísticas básicas de estudo.
 * Exibir tempo estudado hoje.
 * Exibir tempo estudado na semana.
 * Exibir tempo estudado no mês.
-* Exibir tempo estudado no ano.
-* Calcular médias diárias, semanais e mensais.
-* Implementar sistema de sequência de estudos (Streak).
-* Criar um dashboard com indicadores de desempenho.
-* Exibir evolução do tempo estudado.
-* Adicionar ranking pessoal de desempenho.
+* Calcular média diária de estudo.
+* Testar todas as funcionalidades da versão.
+* Corrigir bugs encontrados durante os testes.
+* Revisar e organizar o código.
+* Revisar a estrutura do banco de dados.
+* Finalizar a versão ATHENA 1.1.
 
-## ATHENA 1.3 — Produtividade
+## ATHENA 2.0 — Versão Aplicativo
 
-* Implementar a Técnica Pomodoro.
-* Adicionar Modo Foco.
-* Criar objetivos semanais, mensais e anuais.
-* Permitir registro de anotações.
-* Adicionar checklist de tarefas.
+* Migrar o ATHENA da interface de terminal para uma interface gráfica.
+* Reestruturar as telas para uma experiência de aplicativo.
+* Criar dashboard visual.
+* Adaptar metas, categorias e sessões de estudo para a nova interface.
+* Adaptar o cronômetro e o sistema de pausas.
+* Adaptar as estatísticas de estudo.
+* Melhorar a visualização do histórico de estudos.
+* Implementar melhorias de usabilidade e navegação.
+* Revisar a arquitetura do sistema durante a migração.
 
-## ATHENA 1.4 — Relatórios
+## Futuras versões
 
-* Gerar relatórios semanais.
-* Gerar relatórios mensais.
-* Gerar relatórios anuais.
-* Exportar relatórios em PDF.
-* Permitir envio de relatórios por e-mail.
-* Criar histórico de relatórios gerados.
+Após a versão Aplicativo, novas funcionalidades poderão ser desenvolvidas conforme as necessidades identificadas durante o uso do sistema, podendo incluir:
 
-## ATHENA 1.5 — Calendário
+* Estatísticas e métricas mais avançadas.
+* Relatórios de desempenho.
+* Calendário de estudos.
+* Sistema de sequência de estudos (Streak).
+* Gamificação.
+* Melhorias de segurança e autenticação.
+* Exportação de dados e relatórios.
+* Novos recursos de produtividade.
 
-* Implementar calendário de estudos.
-* Adicionar calendário no estilo GitHub.
-* Exibir dias estudados.
-* Identificar o melhor dia da semana para estudos.
-* Identificar o melhor mês de desempenho.
-
-## ATHENA 1.6 — Gamificação
-
-* Implementar sistema de XP.
-* Criar sistema de níveis.
-* Adicionar conquistas.
-* Implementar medalhas.
-* Criar sistema de recompensas pessoais.
-* Permitir definição de objetivos pessoais.
-
-## ATHENA 1.7 — Login e Segurança
-
-* Recuperação de senha por e-mail.
-* Código de verificação por e-mail.
-* Validação de senha forte.
-* Bloqueio temporário após múltiplas tentativas de login.
-
-> **Observação:** As funcionalidades acima representam o planejamento atual do ATHENA e poderão sofrer alterações, receber melhorias ou ser ampliadas durante o desenvolvimento das próximas versões.
-";
+> **Observação:** O planejamento acima representa a direção atual do ATHENA. As funcionalidades e prioridades poderão ser alteradas durante o desenvolvimento conforme novas necessidades, ideias e aprendizados surgirem.";
 
 
     public static readonly string Sobre = @"

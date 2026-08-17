@@ -17,11 +17,11 @@ public class ResultadoSessao
     public DateTime DataFim { get; set; }
     public TimeSpan TempoLiquido { get; set; }
     public TimeSpan TempoBruto { get; set; }
+    public TimeSpan TempoPausa => TempoBruto - TempoLiquido;
 
-    // Propriedades calculadas utilitárias (facilitam o uso)
     public double MinutosLiquidos => TempoLiquido.TotalMinutes;
     public double MinutosBrutos => TempoBruto.TotalMinutes;
-    public TimeSpan TempoPausa => TempoBruto - TempoLiquido;
+    public double MinutosPausa => TempoPausa.TotalMinutes;
 }
 
 public class Cronometro
@@ -70,6 +70,8 @@ public class Cronometro
             Interface.LimparTelaGeral();
             Interface.Titulo("CRONOMETRO");
             AnsiConsole.MarkupLine($"[{Cores.TextosDestaque}]CRONÔMETRO PAUSADO[/]");
+
+
             AnsiConsole.MarkupLine($"Foco acumulado: [bold]{tempoLiquido.Elapsed:hh\\:mm\\:ss}[/]\n");
 
             string opcao = AnsiConsole.Prompt(
@@ -91,19 +93,21 @@ public class Cronometro
         DateTime dataFim = DateTime.Now;
         double minutosLiquidos = tempoLiquido.Elapsed.TotalMinutes;
         double minutosBrutos = tempoBruto.Elapsed.TotalMinutes;
+        double tempoPausa = minutosBrutos - minutosLiquidos;
+
+
 
         AnsiConsole.MarkupLine($"[green]Sessão Finalizada com Sucesso![/]\n");
-        AnsiConsole.MarkupLine($"[bold]Tempo Líquido (Foco):[/] {tempoLiquido.Elapsed:hh\\:mm\\:ss} ({minutosLiquidos:F1} min)");
-        AnsiConsole.MarkupLine($"[bold]Tempo Bruto (Total):[/] {tempoBruto.Elapsed:hh\\:mm\\:ss} ({minutosBrutos:F1} min)");
-        AnsiConsole.MarkupLine($"[bold]Tempo de Pausa:[/] {tempoBruto.Elapsed - tempoLiquido.Elapsed:hh\\:mm\\:ss}\n");
-        Console.ReadKey();
+        AnsiConsole.MarkupLine($"[bold]Tempo Líquido (Foco):[/] {tempoLiquido.Elapsed:hh\\:mm\\:ss} min)");
+        AnsiConsole.MarkupLine($"[bold]Tempo Bruto (Total):[/] {tempoBruto.Elapsed:hh\\:mm\\:ss} min)");
+        AnsiConsole.MarkupLine($"[bold]Tempo de Pausa:[/] {tempoBruto.Elapsed - tempoLiquido.Elapsed:hh\\:mm\\:ss}min \n");
 
         return new ResultadoSessao
         {
             DataInicio = dataInicio,
             DataFim = dataFim,
             TempoLiquido = tempoLiquido.Elapsed,
-            TempoBruto = tempoBruto.Elapsed
+            TempoBruto = tempoBruto.Elapsed,
         };
     }
 
@@ -127,7 +131,6 @@ public class Cronometro
 
             }
             System.Console.WriteLine("Tempo salvo");
-
         }
     }
 
@@ -156,6 +159,7 @@ public class Cronometro
             System.Console.WriteLine("Tempo salvo");
 
         }
+
     }
     public static void SalvarTempoSessao(int id_cliente, int id_estudo, int id_sessao, ResultadoSessao sessao)
     {
@@ -173,7 +177,8 @@ public class Cronometro
                 duracao_minutos = @duracao_minutos,
                 tempo_estudado_minutos = @tempo_estudado_minutos,
                 status = @status,
-                descricao = @descricao
+                descricao = @descricao,
+                tempo_pausa_minutos = @tempo_pausa_minutos
             WHERE id = @id";
 
             var descricao = AnsiConsole.Ask<string>("Descreva o que foi estudado e realizado nessa sessão de estudo: ");
@@ -186,6 +191,7 @@ public class Cronometro
 
                 cmd.Parameters.AddWithValue("@duracao_minutos", Convert.ToInt32(sessao.MinutosBrutos));
                 cmd.Parameters.AddWithValue("@tempo_estudado_minutos", Convert.ToInt32(sessao.MinutosLiquidos));
+                cmd.Parameters.AddWithValue("@tempo_pausa_minutos", Convert.ToInt32(sessao.MinutosPausa));
 
                 cmd.Parameters.AddWithValue("@status", "CONCLUIDO");
 

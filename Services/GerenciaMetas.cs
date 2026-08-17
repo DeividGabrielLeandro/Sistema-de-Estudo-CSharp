@@ -55,6 +55,7 @@ public class GerenciaMetas
                                     ResultadoSessao sessao = Cronometro.ContarTempo();
                                     Cronometro.SalvarTempo(id_estudo, sessao.MinutosLiquidos);
                                     Cronometro.AtualizarTempoTotalCliente(id_cliente, sessao.MinutosLiquidos);
+                                    RegistroFoco.SalvarFoco(id_cliente, sessao.MinutosLiquidos, "META");
                                     break;
 
                                 case "Abrir sessão de estudo":
@@ -165,6 +166,7 @@ new SelectionPrompt<string>()
 
         var tabela = new Table()
 .Border(TableBorder.Rounded);
+        tabela.BorderColor(Color.FromHex(Cores.Opcoes));
         tabela.AddColumn("Id");
         tabela.AddColumn("Titulo");
         tabela.AddColumn("Descrição");

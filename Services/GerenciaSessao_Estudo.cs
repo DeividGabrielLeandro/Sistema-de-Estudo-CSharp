@@ -46,6 +46,8 @@ public class GerenciaSessao_Estudo
                                     Cronometro.SalvarTempoSessao(id_cliente, id_estudo, id_sessao, sessao);
                                     Cronometro.SalvarTempo(id_estudo, sessao.MinutosLiquidos);
                                     Cronometro.AtualizarTempoTotalCliente(id_cliente, sessao.MinutosLiquidos);
+                                    RegistroFoco.SalvarFoco(id_cliente, sessao.MinutosLiquidos, "SESSAO");
+
                                     break;
                                 case "Sair":
                                     Sair = true;
@@ -86,6 +88,7 @@ public class GerenciaSessao_Estudo
                     tabela.AddColumn("Descrição");
                     tabela.AddColumn("Tempo total estudado(bruto)");
                     tabela.AddColumn("Tempo de foco");
+                    tabela.AddColumn("Tempo em pausa");
                     tabela.AddColumn("Iniciado em");
                     tabela.AddColumn("Concluído em");
 
@@ -93,8 +96,9 @@ public class GerenciaSessao_Estudo
                     tabela.Columns[2].Centered(); // Tempo total estudado(bruto)
                     tabela.Columns[3].Centered(); // Descrição
                     tabela.Columns[4].Centered(); // Tempo de foco
-                    tabela.Columns[5].Centered(); // Iniciado em
-                    tabela.Columns[6].Centered(); // Concluído em
+                    tabela.Columns[5].Centered(); // Tempo em pausa
+                    tabela.Columns[6].Centered(); // Iniciado em
+                    tabela.Columns[7].Centered(); // Concluído em
 
 
                     while (Reader.Read())
@@ -126,6 +130,7 @@ public class GerenciaSessao_Estudo
                 descricao,
                 $"{Reader["duracao_minutos"]} minutos",
                 $"{Reader["tempo_estudado_minutos"]} minutos",
+                $"{Reader["tempo_pausa_minutos"]} minutos",
                 data_inicio,
                 data_fim
 
@@ -141,42 +146,5 @@ public class GerenciaSessao_Estudo
 
             }
         }
-    }
-
-    public static Panel InformacoesSessao(SqlDataReader Reader)
-    {
-
-        string titulo = Reader["titulo"].ToString()!;
-        string descricao = Reader["descricao"].ToString()!;
-        string minutosTotais = Reader["tempo_estudado_minutos"].ToString()!;
-        string minutosEstudados = Reader["duracao_minutos"].ToString()!;
-
-        string data_inicio = Reader["data_inicio"] != DBNull.Value
-                            ? Convert.ToDateTime(Reader["data_inicio"]).ToString("dd/MM/yyyy")
-                            : "-";
-
-        string data_fim = Reader["data_fim"] != DBNull.Value
-            ? Convert.ToDateTime(Reader["data_fim"]).ToString("dd/MM/yyyy")
-            : "-";
-
-
-
-        string categoria = Sessao_Estudo.NomeSessao(
-Convert.ToInt32(Reader["id"])
-);
-
-        string textoPainel =
-                $"\n[bold]Descrição:[/] {descricao}\n\n" +
-                $"[bold]Minutos de estudo(bruto):[/] {minutosTotais} minutos\n" +
-                $"[bold]Minutos de foco:[/] {minutosEstudados} minutos\n" +
-                $"[bold]Data de início:[/] {data_inicio} minutos\n" +
-                $"[bold]Data final:[/] {data_fim} minutos\n";
-        var painelEstudante = new Panel(textoPainel)
-
-.Border(BoxBorder.Rounded)
-.BorderColor(Color.FromHex($"{Cores.Opcoes}"))
-.Header($"[{Cores.TextosDestaque}]{Reader["titulo"]}[/]", Justify.Left);
-
-        return painelEstudante;
     }
 }
