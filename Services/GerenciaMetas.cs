@@ -1,21 +1,20 @@
-using System.Reflection.Metadata.Ecma335;
-
 namespace Init_db;
 
 using Spectre.Console;
 using Microsoft.Data.SqlClient;
-using Microsoft.VisualBasic;
 
+/// <summary>
+/// Controla o fluxo de visualização, interação, personalização e construção visual das metas.
+/// </summary>
 public class GerenciaMetas
 {
-
     /// <summary>
-    /// Exibe os detalhes da meta selecionada e permite iniciar,
-    /// editar ou concluir a sessão de estudo.
+    /// Exibe os detalhes de uma meta de estudo e apresenta o menu principal de ações disponíveis.
     /// </summary>
+    /// <param name="id_cliente">O identificador do cliente.</param>
+    /// <param name="id_estudo">O identificador da meta selecionada.</param>
     public static void IniciarEstudo(int id_cliente, int id_estudo)
     {
-        Sessao_Estudo sessao_Estudo = new Sessao_Estudo();
         bool Sair = false;
         while (!Sair)
         {
@@ -30,7 +29,6 @@ public class GerenciaMetas
 
                     using (var Reader = cmd.ExecuteReader())
                     {
-                        string opcao = "";
                         Interface.LimparTelaGeral();
                         Interface.Titulo("SEU PLANO");
 
@@ -38,15 +36,13 @@ public class GerenciaMetas
 
                         if (Reader.Read())
                         {
+                            // Renderiza o painel de detalhes da meta
                             AnsiConsole.Write(GerenciaMetas.InformacoesMetas(Reader));
 
-                            opcao = AnsiConsole.Prompt(
+                            string opcao = AnsiConsole.Prompt(
                                 new SelectionPrompt<string>()
                                 .Title("\n[#D3CCC7]─────────────────────────────────[/]\n[#D3CCC7]             OPÇÕES[/]\n[#D3CCC7]─────────────────────────────────[/]")
-                                .HighlightStyle(new Style(
-                                    foreground: Color.FromHex($"{Cores.Opcoes}"),
-                                    decoration: Decoration.Bold
-                                ))
+                                .HighlightStyle(new Style(foreground: Color.FromHex($"{Cores.Opcoes}"), decoration: Decoration.Bold))
                                 .AddChoices("Começar a contar o tempo", "Abrir sessão de estudo", "Escolher sessão de estudo", "Ver histórico de sessões de estudo", "Abrir as opções", "Marcar como finalizada", "Definir prioridade", "Definir data limite", "Vincular à uma categoria criada", "Sair"));
 
                             switch (opcao)
@@ -61,6 +57,7 @@ public class GerenciaMetas
                                 case "Abrir sessão de estudo":
                                     Sessao_Estudo.CriarSessao(id_cliente, id_estudo);
                                     break;
+
                                 case "Escolher sessão de estudo":
                                     int id_gerado = Sessao_Estudo.MostrarSessao(id_estudo);
                                     if (id_gerado != -1)
@@ -68,10 +65,12 @@ public class GerenciaMetas
                                         GerenciaSessao_Estudo.Interface_Sessao(id_estudo, id_gerado, id_cliente);
                                     }
                                     break;
+
                                 case "Ver histórico de sessões de estudo":
                                     AnsiConsole.Write(GerenciaSessao_Estudo.HistoricoSessoes(id_estudo));
                                     Mensagens.Sair();
                                     break;
+
                                 case "Abrir as opções":
                                     PersonalizarMetas(id_estudo);
                                     break;
@@ -112,26 +111,25 @@ public class GerenciaMetas
             }
         }
     }
+
     /// <summary>
-    /// Exibe o menu de personalização de uma meta de estudo.
+    /// Exibe o menu interativo com opções de edição das propriedades da meta.
     /// </summary>
-    /// <param name="id_estudo">Identificador da meta selecionada.</param>
+    /// <param name="id_estudo">O identificador da meta.</param>
     public static void PersonalizarMetas(int id_estudo)
     {
-        string opcao = "";
         bool sair = false;
         while (!sair)
         {
-
             Interface.LimparTelaGeral();
             Interface.Titulo("PERSONALIZE SUAS METAS");
 
-            opcao = AnsiConsole.Prompt(
-new SelectionPrompt<string>()
-        .Title("\n[#D3CCC7]─────────────────────────────────[/]\n[#D3CCC7]             OPÇÕES[/]\n[#D3CCC7]─────────────────────────────────[/]")
-.HighlightStyle(new Style(foreground: Color.FromHex($"{Cores.Opcoes}")))
-.AddChoices("Atualizar título", "Atualizar descrição", "Atualizar tempo de meta", "Apagar meta", "Sair")
-);
+            string opcao = AnsiConsole.Prompt(
+                new SelectionPrompt<string>()
+                    .Title("\n[#D3CCC7]─────────────────────────────────[/]\n[#D3CCC7]             OPÇÕES[/]\n[#D3CCC7]─────────────────────────────────[/]")
+                    .HighlightStyle(new Style(foreground: Color.FromHex($"{Cores.Opcoes}")))
+                    .AddChoices("Atualizar título", "Atualizar descrição", "Atualizar tempo de meta", "Apagar meta", "Sair")
+            );
 
             switch (opcao)
             {
@@ -146,11 +144,8 @@ new SelectionPrompt<string>()
                     break;
                 case "Apagar meta":
                     bool apagou = AtualizarEstudo.ApagarMeta(id_estudo);
-
                     if (apagou)
-                    {
                         return;
-                    }
                     break;
                 case "Sair":
                     sair = true;
@@ -159,13 +154,17 @@ new SelectionPrompt<string>()
         }
     }
 
-
+    /// <summary>
+    /// Constrói uma tabela formatada contendo todas as metas lidas do leitor de dados SQL.
+    /// </summary>
+    /// <param name="Reader">O leitor com o resultado da consulta SQL contendo os registros de metas.</param>
+    /// <param name="MetaEncontrada">Parâmetro de saída que indica true caso haja registros lidos.</param>
+    /// <returns>Uma tabela do Spectre.Console estilizada contendo as metas.</returns>
     public static Table MostrarMetas(SqlDataReader Reader, out bool MetaEncontrada)
     {
         MetaEncontrada = false;
 
-        var tabela = new Table()
-.Border(TableBorder.Rounded);
+        var tabela = new Table().Border(TableBorder.Rounded);
         tabela.BorderColor(Color.FromHex(Cores.Opcoes));
         tabela.AddColumn("Id");
         tabela.AddColumn("Titulo");
@@ -188,16 +187,15 @@ new SelectionPrompt<string>()
         tabela.Columns[9].Centered(); // Categoria
 
         while (Reader.Read())
-
         {
-            string data_limite;
             MetaEncontrada = true;
+            string data_limite;
 
             bool concluido = Convert.ToBoolean(Reader["concluido"]);
             string prioridade = Convert.ToString(Reader["prioridade"].ToString()!);
             string statusConcluido = concluido ? "[green]Concluída[/]" : "[yellow]Em andamento[/]";
 
-
+            // Formatação do status de prazo de entrega
             if (Reader["data_limite"] == DBNull.Value)
             {
                 data_limite = "Sem data limite";
@@ -205,7 +203,6 @@ new SelectionPrompt<string>()
             else
             {
                 DateTime data = Convert.ToDateTime(Reader["data_limite"]);
-
                 if (data.Date < DateTime.Today)
                 {
                     data_limite = $"{data:dd/MM/yyyy} - Atrasada";
@@ -216,19 +213,20 @@ new SelectionPrompt<string>()
                 }
             }
 
-
+            // Trunca strings longas para se adequarem à largura do terminal
             string descricao = Reader["descricao"].ToString()!;
             if (descricao.Length > 30)
             {
                 descricao = descricao.Substring(0, 15) + "...";
             }
+
             string titulo = Reader["titulo"].ToString()!;
             if (titulo.Length > 18)
             {
                 titulo = titulo.Substring(0, 15) + "...";
             }
 
-
+            // Aplica marcações de cor no campo de prioridade
             if (prioridade == "Prioridade alta")
                 prioridade = "[red]Prioridade alta[/]";
             else if (prioridade == "Prioridade média")
@@ -238,32 +236,33 @@ new SelectionPrompt<string>()
             else
                 prioridade = "[grey]Sem prioridade[/]";
 
-            string categoria = Categoria.NomeCategoria(
-    Convert.ToInt32(Reader["id"])
-);
-
+            string categoria = Categoria.NomeCategoria(Convert.ToInt32(Reader["id"]));
 
             tabela.AddRow(
-    $"{Reader["id"]}",
-    $"{Reader["titulo"]}",
-    descricao,
-    $"{Reader["meta_minutos"]}",
-    $"{Reader["minutos_estudados"]}",
-    $"{Reader["data_criacao"]}",
-    data_limite,
-    statusConcluido,
-    prioridade,
-    categoria
-);
+                $"{Reader["id"]}",
+                $"{Reader["titulo"]}",
+                descricao,
+                $"{Reader["meta_minutos"]}",
+                $"{Reader["minutos_estudados"]}",
+                $"{Reader["data_criacao"]}",
+                data_limite,
+                statusConcluido,
+                prioridade,
+                categoria
+            );
             tabela.AddEmptyRow();
-
-
         }
+
         return tabela;
     }
+
+    /// <summary>
+    /// Busca no banco de dados e monta uma tabela com todas as metas já concluídas do cliente.
+    /// </summary>
+    /// <param name="id_cliente">O identificador do cliente.</param>
+    /// <returns>Uma tabela formatada contendo o histórico de metas finalizadas.</returns>
     public static Table HistoricoMetasConcluídas(int id_cliente)
     {
-
         using (SqlConnection conn = new SqlConnection(Banco.Conexao))
         {
             conn.Open();
@@ -276,9 +275,7 @@ new SelectionPrompt<string>()
                     Interface.LimparTelaGeral();
                     Interface.Titulo("SUAS METAS CONCLUÍDAS");
 
-                    var tabela = new Table()
-
-            .Border(TableBorder.Rounded);
+                    var tabela = new Table().Border(TableBorder.Rounded);
                     tabela.AddColumn("Id");
                     tabela.AddColumn("Titulo");
                     tabela.AddColumn("Descrição");
@@ -293,15 +290,14 @@ new SelectionPrompt<string>()
                     tabela.Columns[5].Centered(); // Criado em
                     tabela.Columns[6].Centered(); // Concluído em
 
-
                     while (Reader.Read())
-
                     {
                         string descricao = Reader["descricao"].ToString()!;
                         if (descricao.Length > 30)
                         {
                             descricao = descricao.Substring(0, 15) + "...";
                         }
+
                         string titulo = Reader["titulo"].ToString()!;
                         if (titulo.Length > 18)
                         {
@@ -316,34 +312,31 @@ new SelectionPrompt<string>()
                             ? Convert.ToDateTime(Reader["data_conclusao"]).ToString("dd/MM/yyyy")
                             : "-";
 
-
                         tabela.AddRow(
-                $"{Reader["id"]}",
-                titulo,
-                descricao,
-                $"{Reader["meta_minutos"]}",
-                $"{Reader["minutos_estudados"]}",
-                dataCriacao,
-                dataConclusao
-
-            );
+                            $"{Reader["id"]}",
+                            titulo,
+                            descricao,
+                            $"{Reader["meta_minutos"]}",
+                            $"{Reader["minutos_estudados"]}",
+                            dataCriacao,
+                            dataConclusao
+                        );
                         tabela.AddEmptyRow();
-
-
                     }
-
 
                     return tabela;
                 }
-
             }
         }
     }
 
-
+    /// <summary>
+    /// Constrói um painel do Spectre.Console para exibição detalhada de uma meta específica.
+    /// </summary>
+    /// <param name="Reader">O leitor SQL posicionado na meta a ser exibida.</param>
+    /// <returns>Um objeto de painel formatado contendo as informações da meta.</returns>
     public static Panel InformacoesMetas(SqlDataReader Reader)
     {
-
         string data_limite;
 
         if (Reader["data_limite"] == DBNull.Value)
@@ -353,7 +346,6 @@ new SelectionPrompt<string>()
         else
         {
             DateTime data = Convert.ToDateTime(Reader["data_limite"]);
-
             if (data.Date < DateTime.Today)
             {
                 data_limite = $"{data:dd/MM/yyyy} - Atrasada";
@@ -363,7 +355,6 @@ new SelectionPrompt<string>()
                 data_limite = data.ToString("dd/MM/yyyy");
             }
         }
-
 
         string titulo = Reader["titulo"].ToString()!;
         string descricao = Reader["descricao"].ToString()!;
@@ -383,24 +374,21 @@ new SelectionPrompt<string>()
         else
             prioridade = "[grey]Sem prioridade[/]";
 
-        string categoria = Categoria.NomeCategoria(
-Convert.ToInt32(Reader["id"])
-);
+        string categoria = Categoria.NomeCategoria(Convert.ToInt32(Reader["id"]));
 
         string textoPainel =
-                $"\n[bold]Descrição:[/] {descricao}\n\n" +
-                $"[bold]Meta:[/] {metaMinutos} minutos\n" +
-                $"[bold]Data limite: {data_limite}[/]\n" +
-                $"[bold]Estudado:[/] {minutosEstudados} minutos\n" +
-                $"[bold]Status:[/] {status}\n" +
-                $"[bold]{prioridade}[/] \n" +
-                $"[bold]Categoria: {categoria}[/] \n";
+            $"\n[bold]Descrição:[/] {descricao}\n\n" +
+            $"[bold]Meta:[/] {metaMinutos} minutos\n" +
+            $"[bold]Data limite: {data_limite}[/]\n" +
+            $"[bold]Estudado:[/] {minutosEstudados} minutos\n" +
+            $"[bold]Status:[/] {status}\n" +
+            $"[bold]{prioridade}[/] \n" +
+            $"[bold]Categoria: {categoria}[/] \n";
 
         var painelEstudante = new Panel(textoPainel)
-
-.Border(BoxBorder.Rounded)
-.BorderColor(Color.FromHex($"{Cores.Opcoes}"))
-.Header($"[{Cores.TextosDestaque}]{Reader["titulo"]}[/]", Justify.Left);
+            .Border(BoxBorder.Rounded)
+            .BorderColor(Color.FromHex($"{Cores.Opcoes}"))
+            .Header($"[{Cores.TextosDestaque}]{Reader["titulo"]}[/]", Justify.Left);
 
         return painelEstudante;
     }

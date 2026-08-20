@@ -3,11 +3,16 @@ namespace Init_db;
 using Spectre.Console;
 using Microsoft.Data.SqlClient;
 
+/// <summary>
+/// Responsável pela consulta, filtragem e ordenação das metas de estudo do cliente.
+/// </summary>
 class ListarEstudo
 {
     /// <summary>
-    /// Pesquisa metas pelo título ou descrição.
+    /// Pesquisa metas pelo título ou descrição com base no termo fornecido.
     /// </summary>
+    /// <param name="pesquisa">O termo de busca a ser pesquisado.</param>
+    /// <param name="id_cliente">O identificador único do cliente.</param>
     public static void PesquisarMeta(string pesquisa, int id_cliente)
     {
         bool MetaEncontrada = false;
@@ -59,8 +64,11 @@ class ListarEstudo
     }
 
     /// <summary>
-    /// Exibe todas as metas cadastradas pelo usuário.
+    /// Exibe todas as metas cadastradas pelo usuário, permitindo gerenciamento ou vinculação a categorias.
     /// </summary>
+    /// <param name="id">O identificador único do cliente.</param>
+    /// <param name="adicionarCategoria">Indica se a consulta é para vincular a meta a uma categoria.</param>
+    /// <param name="id_categoria">O identificador opcional da categoria para vinculação.</param>
     public static void MostrarMetas(int id, bool adicionarCategoria, int? id_categoria = null)
     {
         int idCategoria = id_categoria ?? 0;
@@ -123,8 +131,9 @@ class ListarEstudo
     }
 
     /// <summary>
-    /// Exibe apenas as metas pendentes.
+    /// Exibe apenas as metas pendentes do cliente.
     /// </summary>
+    /// <param name="id">O identificador único do cliente.</param>
     public static void MostrarMetasPendentes(int id)
     {
         bool MetaEncontrada = true;
@@ -177,8 +186,9 @@ class ListarEstudo
     }
 
     /// <summary>
-    /// Exibe apenas as metas concluídas.
+    /// Exibe apenas as metas concluídas do cliente.
     /// </summary>
+    /// <param name="id">O identificador único do cliente.</param>
     public static void MostrarMetasConcluidas(int id)
     {
         bool MetaEncontrada = true;
@@ -230,6 +240,10 @@ class ListarEstudo
         }
     }
 
+    /// <summary>
+    /// Exibe as metas cadastradas ordenadas de forma decrescente pela data de criação (ID).
+    /// </summary>
+    /// <param name="id">O identificador único do cliente.</param>
     public static void MostrarUltimasCriadas(int id)
     {
         bool MetaEncontrada = true;
@@ -281,6 +295,10 @@ class ListarEstudo
         }
     }
 
+    /// <summary>
+    /// Exibe as metas ordenadas de forma decrescente pelo tempo total estudado.
+    /// </summary>
+    /// <param name="id">O identificador único do cliente.</param>
     public static void OrdenarPorTempoEstudado(int id)
     {
         bool MetaEncontrada = true;
@@ -332,6 +350,10 @@ class ListarEstudo
         }
     }
 
+    /// <summary>
+    /// Exibe as metas ordenadas alfabeticamente pelo título.
+    /// </summary>
+    /// <param name="id">O identificador único do cliente.</param>
     public static void OrdenarPorTitulo(int id)
     {
         bool MetaEncontrada = true;

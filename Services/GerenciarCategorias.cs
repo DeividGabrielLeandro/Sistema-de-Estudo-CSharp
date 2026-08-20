@@ -3,8 +3,16 @@ namespace Init_db;
 using Spectre.Console;
 using Microsoft.Data.SqlClient;
 
+/// <summary>
+/// Responsável pelo gerenciamento, exibição e manipulação das categorias e suas metas associadas.
+/// </summary>
 public class GerenciaCategorias
 {
+    /// <summary>
+    /// Inicia a interface interativa de gerenciamento da categoria selecionada.
+    /// </summary>
+    /// <param name="id_categoria">O identificador único da categoria.</param>
+    /// <param name="id_cliente">O identificador único do cliente.</param>
     public static void IniciarCategoria(int id_categoria, int id_cliente)
     {
         bool Sair = false;
@@ -96,6 +104,13 @@ FROM Categoria WHERE id = @id";
             }
         }
     }
+
+    /// <summary>
+    /// Consulta as estatísticas da categoria no banco de dados e gera um painel formatado para exibição no console.
+    /// </summary>
+    /// <param name="NomeCategoria">O nome da categoria.</param>
+    /// <param name="idCategoria">O identificador da categoria.</param>
+    /// <returns>Um painel do Spectre.Console contendo as métricas de metas da categoria ou um painel de erro.</returns>
     public static Panel InformacoesCategoria(string NomeCategoria, int idCategoria)
     {
         using (SqlConnection conn = new SqlConnection(Banco.Conexao))
@@ -137,8 +152,8 @@ WHERE id_categoria = @idCategoria";
 
                         var painelEstudante = new Panel(textoPainel)
 
-                .Border(BoxBorder.Rounded)
-                .BorderColor(Color.FromHex($"{Cores.Opcoes}"))
+                        .Border(BoxBorder.Rounded)
+                        .BorderColor(Color.FromHex($"{Cores.Opcoes}"))
 .Header($"[#EF0606] Categoria: {NomeCategoria} [/]", Justify.Left);
 
                         return painelEstudante;

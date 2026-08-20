@@ -2,7 +2,9 @@ namespace Init_db;
 
 using Microsoft.Data.SqlClient;
 
-
+/// <summary>
+/// Prover consultas para recuperação de dados estatísticos e cadastrais do cliente.
+/// </summary>
 public class InformacaoCliente
 {
 
@@ -10,7 +12,7 @@ public class InformacaoCliente
     /// Obtém o nome do usuário a partir do identificador informado.
     /// </summary>
     /// <param name="id">Identificador do usuário.</param>
-    /// <returns>Nome completo do usuário.</returns>
+    /// <returns>Nome completo do usuário ou "Usuário" caso não encontre.</returns>
 
     public string ObterNomeCliente(int id)
     {
@@ -64,7 +66,8 @@ public class InformacaoCliente
     /// <summary>
     /// Retorna a quantidade de metas pendentes do usuário.
     /// </summary>
-    ///<param name="idCliente">Identificador do usuário.</param>
+    /// <param name="idCliente">Identificador do usuário.</param>
+    /// <returns>Quantidade total de metas com status em andamento.</returns>
     public static double ContarMetasPendentes(int idCliente)
     {
         using (SqlConnection conn = new SqlConnection(Banco.Conexao))
@@ -93,6 +96,7 @@ public class InformacaoCliente
     /// Retorna a quantidade de metas concluídas do usuário.
     /// </summary>
     /// <param name="idCliente">Identificador do usuário.</param>
+    /// <returns>Quantidade total de metas finalizadas.</returns>
     public static double ContarMetasConcluidas(int idCliente)
     {
         using (SqlConnection conn = new SqlConnection(Banco.Conexao))
@@ -121,6 +125,7 @@ public class InformacaoCliente
     /// Retorna a quantidade total de metas cadastradas pelo usuário.
     /// </summary>
     /// <param name="idCliente">Identificador do usuário.</param>
+    /// <returns>Quantidade total absoluta de metas criadas.</returns>
     public static double ContarTodasMetas(int idCliente)
     {
         using (SqlConnection conn = new SqlConnection(Banco.Conexao))

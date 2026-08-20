@@ -3,8 +3,17 @@ using Spectre.Console;
 
 namespace Init_db;
 
+/// <summary>
+/// Gerencia a exibição e execução de sessões individuais de estudo e o histórico associado.
+/// </summary>
 public class GerenciaSessao_Estudo
 {
+    /// <summary>
+    /// Exibe a interface interativa de uma sessão de estudo específica e inicia a contagem de tempo.
+    /// </summary>
+    /// <param name="id_estudo">O identificador da meta associada.</param>
+    /// <param name="id_sessao">O identificador único da sessão de estudo.</param>
+    /// <param name="id_cliente">O identificador do cliente.</param>
     public static void Interface_Sessao(int id_estudo, int id_sessao, int id_cliente)
     {
         bool Sair = false;
@@ -64,6 +73,12 @@ public class GerenciaSessao_Estudo
             }
         }
     }
+
+    /// <summary>
+    /// Busca no banco de dados e gera uma tabela com o histórico de sessões concluídas de uma meta.
+    /// </summary>
+    /// <param name="id_meta">O identificador da meta cujas sessões serão consultadas.</param>
+    /// <returns>Uma tabela formatada do Spectre.Console contendo os registros de sessões finalizadas.</returns>
     public static Table HistoricoSessoes(int id_meta)
     {
 

@@ -6,6 +6,9 @@ using Spectre.Console;
 namespace Init_db;
 
 //ABD1C6
+/// <summary>
+/// Responsável por gerenciar as interfaces de usuário no terminal e o fluxo de navegação do sistema.
+/// </summary>
 public class Interface
 {
     /// <summary>
@@ -23,7 +26,7 @@ public class Interface
     /// Exibe um título centralizado entre linhas de separação,
     /// padronizando o cabeçalho das telas do sistema.
     /// </summary>
-    /// <param name="titulo">Texto que será exibido como título.</param>
+    /// <param name="conteudo">Texto que será exibido como título.</param>
     public static void Titulo(string conteudo)
     {
         AnsiConsole.Clear();
@@ -50,6 +53,10 @@ public class Interface
 
         Mensagens.Sair();
     }
+
+    /// <summary>
+    /// Exibe as informações referentes às próximas atualizações planejadas do sistema.
+    /// </summary>
     public static void Atualizacoes()
     {
         LimparTelaGeral();
@@ -78,6 +85,7 @@ public class Interface
             AnsiConsole.MarkupLine($"[{Cores.TextosDestaque}]Bem-vindo ao Athena![/]\n");
             System.Console.WriteLine(Textos.MensagemInicial);
 
+            // Exibe o prompt interativo do menu principal para escolha do usuário.
             opcao = AnsiConsole.Prompt(
             new SelectionPrompt<string>()
             .Title("\n[#D3CCC7]─────────────────────────────────[/]\n[#D3CCC7]             OPÇÕES[/]\n[#D3CCC7]─────────────────────────────────[/]")
@@ -87,6 +95,7 @@ public class Interface
              foreground: Color.FromHex($"{Cores.Opcoes}"), decoration: Decoration.Bold
 )));
 
+            // Trata a opção selecionada pelo usuário no menu principal.
             switch (opcao)
             {
                 case "Sobre o projeto":
@@ -146,6 +155,7 @@ public class Interface
             Titulo("PAINEL DO ESTUDANTE");
             AnsiConsole.MarkupLine($"\n[{Cores.TextosDestaque}]Bem-vindo(a) {Nome}!![/]\n\n");
 
+            // Constrói o painel com o resumo do progresso e dados de foco do estudante.
             var painelEstudante = new Panel(@$"Seus minutos estudados: {tempoEstudo}
 Metas criadas: {totalMetas}
 Metas pendentes: {metasPendentes}
@@ -163,6 +173,7 @@ Tempo de foco este mês: {TempoFocoMes}")
             System.Console.WriteLine(Textos.MensagemMotivacional_Conhecimento);
 
 
+            // Prompt interativo das ações do painel logado.
             opcao = AnsiConsole.Prompt(
         new SelectionPrompt<string>()
         .Title("\n[#D3CCC7]─────────────────────────────────[/]\n[#D3CCC7]             OPÇÕES[/]\n[#D3CCC7]─────────────────────────────────[/]")
@@ -172,6 +183,7 @@ Tempo de foco este mês: {TempoFocoMes}")
         foreground: Color.FromHex($"{Cores.Opcoes}"), decoration: Decoration.Bold))
          );
 
+            // Redireciona o fluxo com base na ação escolhida no painel.
             switch (opcao)
             {
                 case "Criar nova meta":
@@ -267,6 +279,11 @@ new SelectionPrompt<string>()
         }
     }
 
+    /// <summary>
+    /// Apresenta e processa os submúltiplos menus de filtragem ou ordenação das metas.
+    /// </summary>
+    /// <param name="id">Identificador do usuário.</param>
+    /// <param name="escolha">Indica o modo de exibição: "Filtros" ou "Ordenação".</param>
     public static void FiltrosMetas(int id, string escolha)
     {
         string opcao = "";
